@@ -36,4 +36,3 @@ class Measure:
         self.outcome_priority_no = df_measure["Outcome Priority No"]
         self.theme = df_measure["Theme"]
         self.theme_priority_no = df_measure["Theme Priority No"]
-            

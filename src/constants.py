@@ -1,0 +1,6 @@
+"""
+MEASURE TYPES
+"""
+CPM = 'CPM'
+SDM = 'SDM'
+SSG = 'SSG'

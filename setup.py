@@ -8,5 +8,5 @@ setup(
     author='Aleksej Zaicev',
     author_email='alex.zaicef@gmail.com',
     packages=['src'],
-    install_required=['pandas', 'matplotlib']
+    install_required=['pandas', 'xlrd']
     )

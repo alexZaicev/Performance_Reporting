@@ -1,21 +1,19 @@
-import logging, sys
-
+from argparse import ArgumentParser
 from os import listdir, mkdir, remove
 from os.path import isfile, join, exists, dirname, abspath
-from argparse import ArgumentParser
-from datetime import datetime
 
+from dao import ExcelTemplateDao
 from models import *
-from reporter import Reporter
+from reporter import PDFReporter
 
 ROOT_DIR = dirname(abspath(__file__)).replace('\\src', '')
 
 
-def __main(args=None):
+def __main(arg0=None):
+    dao = ExcelTemplateDao(year=arg0.fiscal_year, path=arg0.templates_root)
+    reporter = PDFReporter()
     try:
-        # TODO get dataframe
-        reporter = Reporter()
-        reporter.generate()
+        reporter.generate(entities=dao.get_entities())
     except RGError as ex:
         logging.error(str(ex))
 
@@ -59,7 +57,8 @@ def __arg_parser():
                         dest='debug')
     parser.add_argument('-y', default=datetime.now().year, action='store', type=int,
                         help='Fiscal year of the report templates', dest='fiscal_year')
-    parser.add_argument('-p', default=join(ROOT_DIR, 'templates'), action='store', type=str, help='base directory of report templates')
+    parser.add_argument('-p', default=join(ROOT_DIR, 'templates'), action='store', type=str,
+                        help='base directory of report templates', dest='templates_root')
     return parser.parse_args()
 
 

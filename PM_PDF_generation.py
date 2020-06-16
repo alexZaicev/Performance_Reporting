@@ -53,8 +53,8 @@ def main():
     for idx, line in df_measure.iterrows():
         # print(line["Measure Title"])
         measure = Measure(line)
-        # print(measure.measure_title)
-        measure_data_df = df_measure_data[df_measure_data["Measure Id"] == measure.measure_id]
+        # print(measure.measure_title)df_measure_data
+        measure_data_df = df_measure_data[["Measure Id"] == measure.measure_id]
         # adds a YearMonth column to the dataframe format YYYYYYMM (like 20192001), which
         # is required for sorting bars in the main graph, used as an x_axis 
         measure_data_df.loc[:, "YearMonth"] = measure_data_df.loc[:, "Fiscal Year"].str.replace("-", "").str.cat(measure_data_df.loc[:, "Month"].str[1:3])
@@ -116,7 +116,7 @@ def main():
 
 # loads data from templates
 def read_template(parent_dir):
-    parent_dir = parent_dir + "/*/*template.xlsx";
+    parent_dir = parent_dir + "/*/*template.xlsx"
     df_measure = pd.DataFrame()
     df_measure_data = pd.DataFrame()
     for file in glob.iglob(parent_dir):

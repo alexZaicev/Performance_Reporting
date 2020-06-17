@@ -13,7 +13,7 @@ def __main(arg0=None):
     dao = ExcelTemplateDao(year=arg0.fiscal_year, path=arg0.templates_root)
     reporter = PDFReporter()
     try:
-        reporter.generate(entities=dao.get_entities())
+        reporter.generate(entities=dao.get_entities(), exclusions=arg0.exclusions, out_dir=arg0.out_dir)
     except RGError as ex:
         logging.error(str(ex))
 
@@ -53,12 +53,16 @@ def __init_logger(debug=False):
 
 def __arg_parser():
     parser = ArgumentParser()
-    parser.add_argument('-d', action='store_true', default=False, help='enable debug logging',
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help='enable debug logging',
                         dest='debug')
-    parser.add_argument('-y', default=datetime.now().year, action='store', type=int,
-                        help='Fiscal year of the report templates', dest='fiscal_year')
-    parser.add_argument('-p', default=join(ROOT_DIR, 'templates'), action='store', type=str,
+    parser.add_argument('-y', '--year', default=datetime.now().year, action='store', type=int,
+                        help='fiscal year of the report templates', dest='fiscal_year')
+    parser.add_argument('-p', '--path', default=join(ROOT_DIR, 'templates'), action='store', type=str,
                         help='base directory of report templates', dest='templates_root')
+    parser.add_argument('-e', '--exclusions', default=list(), action='store', type=list,
+                        help='list of measure IDs to be excluded from the report', dest='exclusions')
+    parser.add_argument('-o', '--output', default=join(ROOT_DIR, 'output'), action='store', type=str,
+                        help='report output directory', dest='out_dir')
     return parser.parse_args()
 
 

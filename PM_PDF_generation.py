@@ -4,6 +4,7 @@ Created on Thu May  7 10:47:21 2020
 
 @author: ID107354
 """
+from os.path import dirname, abspath
 
 from fpdf import FPDF
 import glob
@@ -19,6 +20,7 @@ import math
 from Measure import Measure
 from Measure_data import Measure_data
 
+ROOT_DIR = dirname(abspath(__file__))
 
 # PDF format in mm. Equivalent to 11.69 * 16.53 inches
 # Unit used in the code is mm (e.g. in cell()) 
@@ -42,9 +44,12 @@ plt.rcParams['figure.dpi'] = 210
 def main():
     
     dict_measure = {}
-    
+
+    template_dir = os.path.join(ROOT_DIR, 'templates')
+
     # TEST FILES, not in the real PM OneDrive
-    df_measure, df_measure_data = read_template("C:/Users/id107354/Documents/DSC Insight/1 - Quick Win Projects/Performance Management/PDF Generation/Test Files")    
+    # df_measure, df_measure_data = read_template("C:/Users/id107354/Documents/DSC Insight/1 - Quick Win Projects/Performance Management/PDF Generation/Test Files")
+    df_measure, df_measure_data = read_template(template_dir)
 
     # get header names
     # print(df_measure.columns.values)
@@ -54,7 +59,7 @@ def main():
         # print(line["Measure Title"])
         measure = Measure(line)
         # print(measure.measure_title)df_measure_data
-        measure_data_df = df_measure_data[["Measure Id"] == measure.measure_id]
+        measure_data_df = df_measure_data.loc[df_measure_data["Measure Id"] == measure.measure_id]
         # adds a YearMonth column to the dataframe format YYYYYYMM (like 20192001), which
         # is required for sorting bars in the main graph, used as an x_axis 
         measure_data_df.loc[:, "YearMonth"] = measure_data_df.loc[:, "Fiscal Year"].str.replace("-", "").str.cat(measure_data_df.loc[:, "Month"].str[1:3])
@@ -64,7 +69,8 @@ def main():
         # sort measure_data_df by Fiscal Year and Month before passing it to measure_data - most recent one on the top
         measure_data = Measure_data(measure_data_df.sort_values(by=["Fiscal Year", "Month"], ascending=False), measure)
         dict_measure[measure.measure_id] = measure_data
-    
+    print(df_measure['Measure Id'].size)
+    print("NUM KEYS: {}".format(len(dict_measure.keys())))
     # print(dict_measure["3_14"].data["YearMonth"])
 
     # measure(s) we don't want on the final report
@@ -266,7 +272,7 @@ def create_barchart(m):
     ax.set_xticklabels(x_ticklabels, rotation = "horizontal");
 
     # save a unique image per measure id
-    plot_path = "./image/" + str(m.measure.measure_id) + "_barchart.png"
+    plot_path = os.path.join(ROOT_DIR, 'img', "{}_barchart.png".format(str(m.measure.measure_id)))
     savefig(plot_path)
     # add the image to the pdf
     pdf.image(plot_path, x = None, y = None, w = 94, h = 0, type = '', link = '')
@@ -499,13 +505,13 @@ def create_visual(m, x_origin, y_origin):
     # TODO add the month somewhere for which the quartile projection is for?
     create_dial(m)
     
-    # Adding the direction of travel images (cannot do it earlier because would create an empty row)
+    # Adding the direction of travel img (cannot do it earlier because would create an empty row)
     # preferred direction of travel in Benchmark table
     pref_dot = m.measure.pref_dot
-    add_dot_image(pref_dot, x_pref_DOT, y_pref_DOT)
+    # add_dot_image(pref_dot, x_pref_DOT, y_pref_DOT)
     
     # direction of travel in Current Position table
-    add_dot_image(dot, x_DOT, y_DOT)
+    # add_dot_image(dot, x_DOT, y_DOT)
 
 # The Grid
 def create_grid():

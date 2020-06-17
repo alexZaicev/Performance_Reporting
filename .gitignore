@@ -9,6 +9,8 @@ __pycache__/
 .idea/
 templates/
 tmp/
+output/
+img/
 
 # Distribution / packaging
 .Python

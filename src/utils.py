@@ -244,10 +244,10 @@ def check_performance_color(p_list, color):
     return False
 
 
-def sort_results_and_months_by_performance(freq_num, p_list, value):
+def sort_results_and_months_by_performance(r_list, freq_num, p_list, value):
     months = list()
-    performances = list()
-    if freq_num is not None and p_list is not None and len(p_list) <= len(months):
+    results = list()
+    if r_list is not None and freq_num is not None and p_list is not None:
         for i in range(0, len(p_list), 1):
             if value is None:
                 if BLUE not in str(p_list[i]).upper() and \
@@ -255,10 +255,12 @@ def sort_results_and_months_by_performance(freq_num, p_list, value):
                         AMBER not in str(p_list[i]).upper() and \
                         RED not in str(p_list[i]).upper() and \
                         GREY not in str(p_list[i]).upper():
-                    months.append(months[i])
-                    performances.append(value)
+                    if r_list[i] is not None:
+                        months.append(freq_num[i])
+                        results.append(r_list[i])
             else:
                 if value in str(p_list[i]).upper():
-                    months.append(months[i])
-                    performances.append(value)
-    return months, performances
+                    if r_list[i] is not None:
+                        months.append(freq_num[i])
+                        results.append(r_list[i])
+    return months, results

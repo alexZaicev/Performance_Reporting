@@ -287,12 +287,12 @@ class PDFReporter(RGReporterBase):
 
         bar_width = 0.6
 
-        blue_data = sort_results_and_months_by_performance(results, performance, BLUE)
-        green_data = sort_results_and_months_by_performance(results, performance, GREEN)
-        amber_data = sort_results_and_months_by_performance(results, performance, AMBER)
-        red_data = sort_results_and_months_by_performance(results, performance, RED)
-        grey_data = sort_results_and_months_by_performance(results, performance, GREY)
-        brag_grey_data = sort_results_and_months_by_performance(results, performance, None)
+        blue_data = sort_results_and_months_by_performance(results, x_num, performance, BLUE)
+        green_data = sort_results_and_months_by_performance(results, x_num, performance, GREEN)
+        amber_data = sort_results_and_months_by_performance(results, x_num, performance, AMBER)
+        red_data = sort_results_and_months_by_performance(results, x_num, performance, RED)
+        grey_data = sort_results_and_months_by_performance(results, x_num, performance, GREY)
+        brag_grey_data = sort_results_and_months_by_performance(results, x_num, performance, None)
 
         ax.bar(blue_data[0], blue_data[1], width=bar_width, color=str(get_color(BLUE)), zorder=3)
         ax.bar(green_data[0], green_data[1], width=bar_width, color=str(get_color(GREEN)), zorder=3)

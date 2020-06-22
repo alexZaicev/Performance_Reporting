@@ -5,7 +5,7 @@ import logging
 import os
 import shutil
 
-from utils import get_val, get_lfy_prefix, get_cfy_prefix
+from utils import get_val, get_lfy_prefix, get_cfy_prefix, get_dir_path
 
 
 class RGError(Exception):
@@ -13,6 +13,36 @@ class RGError(Exception):
     RG custom error
     """
     pass
+
+
+class RGColor(object):
+
+    def __init__(self, r=0, g=0, b=0):
+        object.__init__(self)
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def __str__(self):
+        return '#{}{}{}'.format(
+            self.__ff(self.r),
+            self.__ff(self.g),
+            self.__ff(self.b)
+        )
+
+    # return 'rgb({}, {}, {})'.format(self.r, self.g, self.b)
+    # return '#{}{}{}'.format(
+    #     hex(self.r)[2:],
+    #     hex(self.g)[2:],
+    #     hex(self.b)[2:]
+    # )
+
+    @staticmethod
+    def __ff(val):
+        h = hex(val)[2:]
+        if len(h) == 1:
+            h = '0{}'.format(h)
+        return h
 
 
 class RGModel(ABC):
@@ -102,7 +132,7 @@ class RGDataBase(RGModel):
         self.dmtSignOffDate = get_val(df, DMT_SIGN_OFF_DATE)
         self.cabinetMembersSignOffDate = get_val(df, CABINET_MEMBERS_SIGN_OFF_DATE)
         self.year = get_val(df, YEAR)
-        self.yearMonth = get_val(df, YEAR_MONTH),
+        self.yearMonth = get_val(df, YEAR_MONTH)
         self.yearQuarter = get_val(df, YEAR_QUARTER)
 
 
@@ -115,9 +145,11 @@ class RGReporterBase(ABC):
         self.report = None
         self.report_name = REPORT_NAME
 
-    @abstractmethod
     def do_init(self):
-        pass
+        tmp_dir = get_dir_path(TEMP)
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
+        os.mkdir(tmp_dir)
 
     def generate(self, entities=None, exclusions=None, out_dir=None):
         logging.info('Generating report...')
@@ -125,6 +157,7 @@ class RGReporterBase(ABC):
         self.do_compose(entities=entities, exclusions=exclusions)
         self.do_prepare_export(out_dir=out_dir)
         self.do_export(out_dir=out_dir)
+        self.do_clean()
         logging.info('Report successfully generated! [{}]'.format(out_dir))
 
     @abstractmethod
@@ -139,14 +172,18 @@ class RGReporterBase(ABC):
             raise RGError('Report document has not been initialized')
         if out_dir is None:
             raise RGError('Invalid report output directory provided [{}]'.format(out_dir))
-        if os.path.exists(out_dir):
-            shutil.rmtree(out_dir)
-        os.makedirs(out_dir)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
 
     @abstractmethod
     def do_export(self, out_dir=None):
         with open(os.path.join(out_dir, self.report_name), 'w') as ff:
             ff.write(self.report)
+
+    def do_clean(self):
+        tmp_dir = get_dir_path(TEMP)
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
 
 
 class RGDaoBase(ABC):

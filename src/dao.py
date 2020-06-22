@@ -14,7 +14,6 @@ class TemplateDao(RGDaoBase):
     def __init__(self, year=None, path=None):
         RGDaoBase.__init__(self, year=year)
         self.path = path
-        cfy = get_cfy()
         self.current_prefix = get_cfy_prefix()
         self.last_prefix = get_lfy_prefix()
 
@@ -29,7 +28,8 @@ class TemplateDao(RGDaoBase):
         for name in templates.keys():
             logging.debug('Reading [{}] templates....'.format(name))
             for template in templates[name]:
-                dict_template = pd.read_excel(template, sheet_name=["CurrentYearData", "CurrentYearMeasures"])
+                dict_template = pd.read_excel(template, sheet_name=["CurrentYearData", "CurrentYearMeasures"],
+                                              encoding='utf-8')
                 # IMPORTANT: reassign data frame value after append
                 # otherwise data will not be saved
                 temp = dict_template["CurrentYearMeasures"]

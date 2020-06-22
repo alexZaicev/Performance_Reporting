@@ -11,6 +11,8 @@ templates/
 tmp/
 output/
 img/
+*.pdf
+*.pkl
 
 # Distribution / packaging
 .Python

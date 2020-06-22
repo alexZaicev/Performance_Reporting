@@ -1,8 +1,14 @@
-import logging
 import os
 
 from fpdf import FPDF
+
+import report_text as rt
 from models import RGReporterBase
+from utils import *
+from plotly import graph_objects
+import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
+import logging
 
 
 class PDFReporter(RGReporterBase):
@@ -17,8 +23,21 @@ class PDFReporter(RGReporterBase):
         self.grid_size = (2, 3)
 
     def do_init(self):
+        super().do_init()
         self.report = FPDF('L', 'mm', (297, 420))
-        self.report.set_doc_option("core_fonts_encoding", "windows-1252")
+        self.report.add_font(DEJAVU_SANS, '', get_font(DEJAVU_SANS), uni=True)
+        self.report.add_font(DEJAVU_SANS, 'B', get_font(DEJAVU_SANS_BOLD), uni=True)
+        self.report.add_font(DEJAVU_SANS_MONO, '', get_font(DEJAVU_SANS_MONO), uni=True)
+        self.report.add_font(DEJAVU_SANS_MONO, 'B', get_font(DEJAVU_SANS_MONO_BOLD), uni=True)
+        self.report.add_font(DEJAVU_SERIF, '', get_font(DEJAVU_SERIF), uni=True)
+        self.report.add_font(DEJAVU_SERIF, 'B', get_font(DEJAVU_SERIF_BOLD), uni=True)
+        self.report.add_font(DEJAVU_SERIF_CONDENSED, '', get_font(DEJAVU_SERIF_CONDENSED), uni=True)
+        self.report.add_font(DEJAVU_SERIF_CONDENSED, 'B', get_font(DEJAVU_SERIF_BOLD), uni=True)
+        self.report.add_font(LUCIDA_SANS, '', get_font(LUCIDA_SANS), uni=True)
+        self.report.add_font(LUCIDA_SANS, 'B', get_font(LUCIDA_SANS), uni=True)
+
+        self.report.set_doc_option("core_fonts_encoding", REPORT_ENCODING)
+
         self.report.set_auto_page_break(auto=False)
 
     def do_compose(self, entities=None, exclusions=None):
@@ -27,7 +46,7 @@ class PDFReporter(RGReporterBase):
         for entity in entities:
             # check if entity should be excluded from the report
             if exclusions is not None and entity.measure_cfy.m_id in exclusions:
-                logging.debug('Ignoring entity [{}]'.format(entity.measure_cfy.m_id))
+                logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
                 continue
             graphs += 1
             # check if coords are equal to initial left-top
@@ -35,25 +54,30 @@ class PDFReporter(RGReporterBase):
             if coords[0] == self.left_top[0] and coords[1] == self.left_top[1]:
                 self.report.add_page()
 
+            # create chart
+            self.__compose_visuals_for_entity(entity, coords)
+
             # check if number of graphs on grid row has exceeded the allowed amount
             if graphs % self.grid_size[1] == 0:
-                coords = (self.left_top[0], self.left_top[1] + self.graph_size[1])
+                coords[0] = self.left_top[0]
+                coords[1] += self.graph_size[1]
             else:
-                coords = (self.left_top[0] + self.graph_size[0], self.left_top[1])
+                coords[0] += self.graph_size[0]
             # check if number of graphs on page has exceeded the allowed amount
             # then create setup properties for new page to be added
             if graphs % (self.grid_size[0] * self.grid_size[1]) == 0:
-                self.__create_grid()
+                self.__set_grid()
                 coords = list(self.left_top)
 
-        self.__create_grid()
+        self.__set_grid()
 
     def do_export(self, out_dir=None):
-        self.report.output(name=os.path.join(out_dir, '{}.pdf'.format(self.report_name)), dest='F')
+        self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
+                           dest='F')
 
-    def __create_grid(self):
+    def __set_grid(self):
         self.report.set_xy(10, 30)
-        self.report.set_font('Arial', 'B', 8)
+        self.report.set_font(REPORT_FONT, 'B', 8)
         self.report.cell(135, 118, '', 1, 0, '')
         self.report.cell(135, 118, '', 1, 0, '')
         self.report.cell(135, 118, '', 1, 2, '')
@@ -61,3 +85,225 @@ class PDFReporter(RGReporterBase):
         self.report.cell(135, 118, '', 1, 0, '')
         self.report.cell(135, 118, '', 1, 0, '')
         self.report.cell(135, 118, '', 1, 2, '')
+
+    def __add_empty_line(self):
+        self.report.set_font(REPORT_FONT, '', 5.5)
+        # self.report.cell(35, 5, '', ln=2, align='C')
+        self.report.cell(0, 1, ' ', 0, 2, 'C')
+
+    def __set_font(self, is_bold=False, size=5):
+        if is_bold:
+            self.report.set_font(REPORT_FONT, 'B', size)
+        else:
+            self.report.set_font(REPORT_FONT, '', size)
+
+    def __compose_visuals_for_entity(self, entity, left_top):
+        self.report.set_xy(left_top[0], left_top[1])
+        d_format = entity.measure_lfy.data_format
+        frequency = entity.measure_lfy.frequency.upper()
+
+        self.__compose_bar_chart(entity.measure_lfy, entity.data_lfy, frequency, d_format)
+
+        self.__add_empty_line()
+        self.__compose_report_comment(entity.data_lfy)
+
+        self.report.set_xy(left_top[0] + 95, left_top[1] + 5)
+        self.__compose_benchmark_tbl(entity.data_lfy, d_format)
+
+        self.__add_empty_line()
+        self.__compose_current_pos_tbl(entity.measure_lfy, entity.data_lfy, frequency, d_format)
+
+        self.__add_empty_line()
+        self.__compose_gauge_chart(entity.data_lfy)
+
+    def __compose_report_comment(self, data_list):
+        r_comment = get_report_comment(data_list)
+        self.report.multi_cell(93, 2.5, r_comment, 0, 'J')
+
+    def __compose_benchmark_tbl(self, data_list, d_format):
+        data_with_bmk_list = get_bmk(data_list)
+        if len(data_with_bmk_list) == 0:
+            nat_avg = rt.NO_BENCHMARK
+            b_at_bmk, quartile, bmk_y, bmk_g = '', '', '', ''
+        else:
+            recent_data = data_with_bmk_list[len(data_with_bmk_list) - 1]
+            nat_avg = format_value(recent_data.benchmarkResult, d_format)
+            b_at_bmk = format_value(recent_data.birmResultAtBenchmark, d_format)
+
+            quartile = format_value(recent_data.birmQuartilePosition)
+            if quartile is None:
+                quartile = rt.NOT_APPLICABLE
+            quartile = quartile.upper()
+
+            bmk_y = '{} {}'.format(rt.BENCHMARK, format_value(recent_data.yearOfBenchmarkData))
+            bmk_g = format_value(recent_data.benchmarkGroup)
+
+        self.__set_font(is_bold=True, size=8)
+        self.report.cell(37, 6, rt.BENCHMARK, 1, 2, 'C')
+
+        self.__set_font(size=7)
+        self.report.cell(17, 6, rt.PREFERRED_DOT, border='L', ln=0, align='C')
+        self.report.cell(20, 6, ' ', border='R', ln=2, align='C')
+        self.report.cell(-17)
+
+        self.report.cell(17, 6, rt.NATIONAL_AVERAGE, border='L', ln=0, align='C')
+        self.report.cell(20, 6, nat_avg, border='R', ln=2, align='C')
+        self.report.cell(-17)
+
+        self.report.cell(17, 6, rt.BIRMINGHAM, border='L', ln=0, align='C')
+        self.report.cell(20, 6, b_at_bmk, border='R', ln=2, align='C')
+        self.report.cell(-17)
+
+        self.report.cell(17, 6, rt.QUARTILE, border='L', ln=0, align='C')
+        if rt.FOURTH in quartile:
+            color = get_color(RED)
+        elif rt.THIRD in quartile:
+            color = get_color(AMBER)
+        elif rt.SECOND in quartile:
+            color = get_color(GREEN)
+        elif rt.FIRST in quartile:
+            color = get_color(BLUE)
+        else:
+            color = get_color(WHITE)
+        self.report.set_fill_color(r=color.r, g=color.g, b=color.b)
+        self.report.cell(20, 6, quartile, border='R', ln=2, align='C', fill=True)
+        self.report.cell(-17)
+
+        self.__set_font(size=6)
+        self.report.multi_cell(37, 5, '{} {}'.format(bmk_y, bmk_g), ln=2, border='LRB', align='C')
+
+    def __compose_current_pos_tbl(self, measure, data_list, frequency, d_format):
+        data_current_pos_list = get_current_pos(data_list)
+        if len(data_current_pos_list) == 0:
+            dot, result, target = '', '', ''
+            fill_bool = False
+            baseline = NOT_APPLICABLE
+        else:
+            recent_data = data_current_pos_list[len(data_current_pos_list) - 1]
+            if FREQ_ANNUAL in frequency:
+                dot = format_value(recent_data.dotFromSamePeriodLastYear)
+            elif FREQ_QUARTER in frequency:
+                dot = format_value(recent_data.dotFromPreviousQuarter)
+            else:
+                dot = format_value(recent_data.dotFromPreviousMonth)
+            result = format_value(recent_data.result, d_format)
+            target = format_value(recent_data.target, d_format)
+            fill_bool = recent_data.status.upper() == rt.PROVISIONAL
+            baseline = format_value(measure.baseline, d_format)
+        self.__set_font(is_bold=True, size=8)
+        self.report.cell(37, 6, rt.CURRENT_POSITION, 1, 2, 'C')
+        self.__set_font(is_bold=False, size=7)
+
+        self.report.cell(17, 6, rt.DOT, border='L', ln=0, align='C')
+        text_dot = " "
+        if ~(dot in ["p", "q", "r", "s", "u"]):
+            text_dot = dot
+        self.report.cell(20, 6, text_dot, border='R', ln=2, align='C')
+        self.report.cell(-17)
+
+        self.report.set_fill_color(r=255, g=255, b=0)
+        self.report.cell(17, 6, rt.ACTUAL, border='L', ln=0, align='C')
+        self.report.cell(20, 6, result, border='R', ln=2, align='C', fill=fill_bool)
+        self.report.cell(-17)
+
+        self.report.cell(17, 6, rt.TARGET, border='L', ln=0, align='C')
+        self.report.cell(20, 6, target, border='R', ln=2, align='C')
+        self.report.cell(-17)
+
+        self.report.cell(17, 6, rt.BASELINE, border='LB', ln=0, align='C')
+        self.report.cell(20, 6, baseline, border='RB', ln=2, align='C')
+        self.report.cell(-17)
+
+    def __compose_gauge_chart(self, data_list):
+        data_qp_list = get_qp(data_list)
+        if len(data_qp_list) == 0:
+            return
+        recent_data = data_qp_list[len(data_qp_list) - 1]
+        self.__set_font(is_bold=True, size=8)
+        self.report.cell(35, 6, rt.QUARTILE_PROJECTION, 0, 2, 'C')
+        self.__set_font(size=7)
+        self.report.cell(35, 3, rt.CURRENT_ACTUAL_AGAINST, 0, 2, 'C')
+        self.report.cell(35, 3, rt.NATIONAl_DATA_AVAILABLE, 0, 2, 'C')
+        g_chart = graph_objects.Figure(data=graph_objects.Indicator(
+            mode='gauge',
+            value=0,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            gauge={
+                'axis': {'range': [0, 100], 'visible': False},
+                'bar': {'color': 'darkblue'},
+                'bgcolor': 'white',
+                'borderwidth': 2,
+                'bordercolor': 'gray',
+                'steps': [
+                    {'range': [0, 25], 'color': str(get_color(BLUE))},
+                    {'range': [25, 50], 'color': str(get_color(GREEN))},
+                    {'range': [50, 75], 'color': str(get_color(AMBER))},
+                    {'range': [75, 100], 'color': str(get_color(RED))}],
+                'threshold': {
+                    'line': {'color': "black", 'width': 10},
+                    'thickness': 1,
+                    'value': try_parse(recent_data.quartileProjection, is_float=True)}}))
+        f_path = join(get_dir_path(TEMP), '{}_quartile_projection.png'.format(recent_data.m_id))
+        g_chart.write_image(f_path)
+        self.report.image(f_path, x=None, y=None, w=35, h=0, type='', link='')
+
+    def __compose_bar_chart(self, measure, data_list, frequency, d_format):
+        fig, ax = plt.subplots()
+        if d_format.upper() == PERCENTAGE:
+            ax.yaxis.set_major_formatter(PercentFormatter(1.0))
+        graph_title = '{} (ex. {})'.format(measure.m_title, measure.m_ref_no)
+        plt.title(graph_title.replace('\r', '').replace('\n', ''), fontsize=12, wrap=True)
+
+        if frequency in ['Q', 'QUARTER', 'QUARTERLY']:
+            x_freq = FREQ_QUARTER
+            x_num = [try_parse(x.yearQuarter, is_int=True) for x in data_list]
+            x_tick_lbl = set([x.quarter for x in data_list])
+
+            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
+        elif frequency in ['A', 'ANNUAL', 'ANNUALLY', 'YEAR', 'YEARLY', 'BI A', 'BI ANNUAL', 'BI_ANNUALLY']:
+            x_freq = FREQ_ANNUAL
+            x_num = [try_parse(x.year, is_int=True) for x in data_list]
+            x_tick_lbl = set([x.f_year for x in data_list])
+
+            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
+        else:
+            # if frequency is unknown, by default it is configured to monthly
+            x_freq = FREQ_MONTHLY
+            x_num = [try_parse(x.yearMonth, is_int=True) for x in data_list]
+            x_tick_lbl = set([x.month for x in data_list])
+
+            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
+
+        ax.plot(x_num, y_target, "k--", color='darkblue', zorder=4)
+        baseline = try_parse(measure.baseline, is_float=True)
+        if baseline is not None:
+            ax.plot(x_num, [baseline] * len(x_num), color='brown', zorder=4)
+        else:
+            logging.error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
+
+        ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
+        results = get_results_per_given_frequency(data_list, x_freq, x_num)
+        performance = get_performance_per_given_frequency(data_list, x_freq, x_num)
+
+        bar_width = 0.6
+
+        blue_data = sort_results_and_months_by_performance(results, performance, BLUE)
+        green_data = sort_results_and_months_by_performance(results, performance, GREEN)
+        amber_data = sort_results_and_months_by_performance(results, performance, AMBER)
+        red_data = sort_results_and_months_by_performance(results, performance, RED)
+        grey_data = sort_results_and_months_by_performance(results, performance, GREY)
+        brag_grey_data = sort_results_and_months_by_performance(results, performance, None)
+
+        ax.bar(blue_data[0], blue_data[1], width=bar_width, color=str(get_color(BLUE)), zorder=3)
+        ax.bar(green_data[0], green_data[1], width=bar_width, color=str(get_color(GREEN)), zorder=3)
+        ax.bar(amber_data[0], amber_data[1], width=bar_width, color=str(get_color(AMBER)), zorder=3)
+        ax.bar(red_data[0], red_data[1], width=bar_width, color=str(get_color(RED)), zorder=3)
+        ax.bar(grey_data[0], grey_data[1], width=bar_width, color=str(get_color(GREY)), zorder=3)
+        ax.bar(brag_grey_data[0], brag_grey_data[1], width=bar_width, color=str(get_color(GREY)), zorder=3)
+
+        ax.set_xticks(x_num)
+        ax.set_xticklabels(x_tick_lbl, rotation='horizontal')
+
+        f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(measure.m_id))
+        plt.savefig(f_path)
+        self.report.image(f_path, x=None, y=None, w=94, h=0, type='', link='')

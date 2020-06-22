@@ -1,15 +1,37 @@
-REPORT_NAME = 'Performance Monitoring Report'
-EXTENSION = 'PDF'
+"""
+Colors
+"""
+WHITE = 'WHITE'
+BLACK = 'BLACK'
+RED = 'RED'
+GREEN = 'GREEN'
+AMBER = 'AMBER'
+BLUE = 'BLUE'
+TREND = 'TREND'
+GREY = 'GREY'
 
 """
-MEASURE TYPES
+Fonts
+"""
+DEJAVU_SANS = 'DejaVuSans'
+DEJAVU_SANS_BOLD = 'DejaVuSans-Bold'
+DEJAVU_SANS_MONO = 'DejaVuSansMono'
+DEJAVU_SANS_MONO_BOLD = 'DejaVuSansMono-Bold'
+DEJAVU_SERIF = 'DejaVuSerif'
+DEJAVU_SERIF_BOLD = 'DejaVuSerif-Bold'
+DEJAVU_SERIF_CONDENSED = 'DejaVuSerifCondensed'
+DEJAVU_SERIF_CONDENSED_BOLD = 'DejaVuSerifCondensed-Bold'
+LUCIDA_SANS = 'LucidaSans'
+
+"""
+Measure TYPES
 """
 CPM = 'CPM'
 SDM = 'SDM'
 SSG = 'SSG'
 
 """
-Template values
+Template column names
 """
 FISCAL_YEAR = 'FISCAL_YEAR'
 MEASURE_ID = 'MEASURE_ID'
@@ -67,3 +89,25 @@ CABINET_MEMBERS_SIGN_OFF_DATE = 'CABINET_MEMBERS_SIGN_OFF_DATE'
 YEAR = 'YEAR'
 YEAR_MONTH = 'YEAR_MONTH'
 YEAR_QUARTER = 'YEAR_QUARTER'
+
+"""
+Application constants
+"""
+REPORT_NAME = 'Performance Monitoring Report'
+REPORT_ENCODING = 'utf-8'
+REPORT_FONT = DEJAVU_SERIF_CONDENSED
+EXT_PDF = 'pdf'
+MAX_FORMATTED_VALUE_SIZE = 14
+NAN = 'nan'
+FREQ_ANNUAL = 'A'
+FREQ_QUARTER = 'Q'
+FREQ_MONTHLY = 'M'
+DOTS = ["p", "q", "r", "s", "u"]
+
+ROOT = 'ROOT'
+TEMP = 'TEMP'
+RESOURCES = 'RESOURCES'
+LOG = 'LOG'
+TEMPLATES = 'TEMPLATES'
+OUTPUT = 'OUTPUT'
+

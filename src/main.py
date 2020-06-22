@@ -5,8 +5,7 @@ from os.path import isfile, join, exists, dirname, abspath
 from dao import ExcelTemplateDao
 from models import *
 from reporter import PDFReporter
-
-ROOT_DIR = dirname(abspath(__file__)).replace('\\src', '')
+from utils import get_dir_path
 
 
 def __main(arg0=None):
@@ -19,7 +18,7 @@ def __main(arg0=None):
 
 
 def __init_logger(debug=False):
-    log_root = join(ROOT_DIR, 'log')
+    log_root = get_dir_path(LOG)
     now = datetime.now()
     timestamp = ('%04d%02d%02d%02d%02d%02d' % (now.year, now.month, now.day, now.hour, now.minute, now.second))
     if not exists(log_root):
@@ -57,11 +56,11 @@ def __arg_parser():
                         dest='debug')
     parser.add_argument('-y', '--year', default=datetime.now().year, action='store', type=int,
                         help='fiscal year of the report templates', dest='fiscal_year')
-    parser.add_argument('-p', '--path', default=join(ROOT_DIR, 'templates'), action='store', type=str,
+    parser.add_argument('-p', '--path', default=get_dir_path(TEMPLATES), action='store', type=str,
                         help='base directory of report templates', dest='templates_root')
     parser.add_argument('-e', '--exclusions', default=list(), action='store', type=list,
                         help='list of measure IDs to be excluded from the report', dest='exclusions')
-    parser.add_argument('-o', '--output', default=join(ROOT_DIR, 'output'), action='store', type=str,
+    parser.add_argument('-o', '--output', default=get_dir_path(OUTPUT), action='store', type=str,
                         help='report output directory', dest='out_dir')
     return parser.parse_args()
 
@@ -70,5 +69,4 @@ if __name__ == '__main__':
     args = __arg_parser()
     __init_logger(args.debug)
     logging.info('PDF report generating tool')
-    logging.info('Initializing...')
     __main(args)

@@ -103,22 +103,23 @@ class PDFReporter(RGReporterBase):
 
     def __compose_visuals_for_entity(self, entity, left_top):
         self.report.set_xy(left_top[0], left_top[1])
-        d_format = entity.measure_lfy.data_format
-        frequency = entity.measure_lfy.frequency.upper()
+        d_format = entity.measure_cfy.data_format
+        frequency = entity.measure_cfy.frequency.upper()
 
-        self.__compose_bar_chart(entity.measure_lfy, entity.data_lfy, frequency, d_format)
+        self.__compose_bar_chart(entity.measure_cfy, entity.data(), frequency, d_format)
 
         self.__add_empty_line()
-        self.__compose_report_comment(entity.data_lfy)
+        # TODO conclude how to get comments from last/current fiscal year
+        self.__compose_report_comment(entity.data())
 
         self.report.set_xy(left_top[0] + 95, left_top[1] + 5)
-        self.__compose_benchmark_tbl(entity.data_lfy, d_format)
+        self.__compose_benchmark_tbl(entity.data(), d_format)
 
         self.__add_empty_line()
-        self.__compose_current_pos_tbl(entity.measure_lfy, entity.data_lfy, frequency, d_format)
+        self.__compose_current_pos_tbl(entity, frequency, d_format)
 
         self.__add_empty_line()
-        self.__compose_gauge_chart(entity.data_lfy)
+        self.__compose_gauge_chart(entity.data())
 
     def __compose_report_comment(self, data_list):
         r_comment = get_report_comment(data_list)
@@ -176,8 +177,8 @@ class PDFReporter(RGReporterBase):
         self.__set_font(size=6)
         self.report.multi_cell(37, 5, '{} {}'.format(bmk_y, bmk_g), ln=2, border='LRB', align='C')
 
-    def __compose_current_pos_tbl(self, measure, data_list, frequency, d_format):
-        data_current_pos_list = get_current_pos(data_list)
+    def __compose_current_pos_tbl(self, entity, frequency, d_format):
+        data_current_pos_list = get_current_pos(entity.data())
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
             fill_bool = False
@@ -193,7 +194,7 @@ class PDFReporter(RGReporterBase):
             result = format_value(recent_data.result, d_format)
             target = format_value(recent_data.target, d_format)
             fill_bool = recent_data.status.upper() == rt.PROVISIONAL
-            baseline = format_value(measure.baseline, d_format)
+            baseline = format_value(entity.get_measure(recent_data).baseline, d_format)
         self.__set_font(is_bold=True, size=8)
         self.report.cell(37, 6, rt.CURRENT_POSITION, 1, 2, 'C')
         self.__set_font(is_bold=False, size=7)
@@ -258,65 +259,92 @@ class PDFReporter(RGReporterBase):
         graph_title = '{} (ex. {})'.format(measure.m_title, measure.m_ref_no)
         plt.title(graph_title.replace('\r', '').replace('\n', ''), fontsize=12, wrap=True)
 
-        if frequency in ['Q', 'QUARTER', 'QUARTERLY']:
-            x_freq = FREQ_QUARTER
-            x_num = set([try_parse(x.yearQuarter, is_int=True) for x in data_list])
-            x_num = sorted(x_num)
-            x_tick_lbl = set([x.quarter for x in data_list])
-            x_tick_lbl = sorted(x_tick_lbl)
+        x_freq = self.__get_freq(frequency)
+        x_ticks, x_ticks_lbl, y_target = self.__get_ticks_and_target(x_freq, data_list)
 
-            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
-        elif frequency in ['A', 'ANNUAL', 'ANNUALLY', 'YEAR', 'YEARLY', 'BI A', 'BI ANNUAL', 'BI_ANNUALLY']:
-            x_freq = FREQ_ANNUAL
-            x_num = [try_parse(x.year, is_int=True) for x in data_list]
-            x_tick_lbl = set([x.f_year for x in data_list])
-
-            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
-        else:
-            # if frequency is unknown, by default it is configured to monthly
-            x_freq = FREQ_MONTHLY
-            x_num = [try_parse(x.yearMonth, is_int=True) for x in data_list]
-
-            x_tick_lbl = dict()
-            for x in data_list:
-                m_dt = x.month.split(' - ')
-                x_tick_lbl[try_parse(m_dt[0].replace('M', ''), is_int=True)] = m_dt[1]
-
-            y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
-            x_tick_lbl = x_tick_lbl.values()
-
-        ax.plot(x_num, y_target, "k--", color='darkblue', zorder=4)
+        ax.plot(x_ticks, y_target, "k--", color='darkblue', zorder=4)
         baseline = try_parse(measure.baseline, is_float=True)
         if baseline is not None:
-            ax.plot(x_num, [baseline] * len(x_num), color='brown', zorder=4)
+            ax.plot(x_ticks, [baseline] * len(x_ticks), color='brown', zorder=4)
         else:
             logging.error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
 
         ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
-        results = get_results_per_given_frequency(data_list, x_freq, x_num)
-        performance = get_performance_per_given_frequency(data_list, x_freq, x_num)
+        results = get_results_per_given_frequency(data_list, x_freq, x_ticks)
+        performance = get_performance_per_given_frequency(data_list, x_freq, x_ticks)
 
-        blue_data = sort_results_and_months_by_performance(results, x_num, performance, BLUE)
-        green_data = sort_results_and_months_by_performance(results, x_num, performance, GREEN)
-        amber_data = sort_results_and_months_by_performance(results, x_num, performance, AMBER)
-        red_data = sort_results_and_months_by_performance(results, x_num, performance, RED)
-        grey_data = sort_results_and_months_by_performance(results, x_num, performance, GREY)
-        brag_grey_data = sort_results_and_months_by_performance(results, x_num, performance, None)
+        blue_data = sort_results_and_months_by_performance(results, x_ticks, performance, BLUE)
+        green_data = sort_results_and_months_by_performance(results, x_ticks, performance, GREEN)
+        amber_data = sort_results_and_months_by_performance(results, x_ticks, performance, AMBER)
+        red_data = sort_results_and_months_by_performance(results, x_ticks, performance, RED)
+        grey_data = sort_results_and_months_by_performance(results, x_ticks, performance, GREY)
+        brag_grey_data = sort_results_and_months_by_performance(results, x_ticks, performance, None)
 
-        if x_freq == FREQ_ANNUAL or len(x_num) == 1:
-            ax.set_xlim(x_num[0] - 1, x_num[0] + 1)
-        bar_width = 0.6
+        if len(x_ticks) == 1:
+            ax.set_xlim(int(x_ticks[0]) - 1, int(x_ticks[0]) + 1)
 
-        ax.bar(blue_data[0], blue_data[1], width=bar_width, color=str(get_color(BLUE)), zorder=3)
-        ax.bar(green_data[0], green_data[1], width=bar_width, color=str(get_color(GREEN)), zorder=3)
-        ax.bar(amber_data[0], amber_data[1], width=bar_width, color=str(get_color(AMBER)), zorder=3)
-        ax.bar(red_data[0], red_data[1], width=bar_width, color=str(get_color(RED)), zorder=3)
-        ax.bar(grey_data[0], grey_data[1], width=bar_width, color=str(get_color(GREY)), zorder=3)
-        ax.bar(brag_grey_data[0], brag_grey_data[1], width=bar_width, color=str(get_color(GREY)), zorder=3)
+        b_width = 0.6
 
-        ax.set_xticks(x_num)
-        ax.set_xticklabels(x_tick_lbl, rotation='horizontal')
+        if len(blue_data[0]) > 0:
+            ax.bar(blue_data[0], blue_data[1], color=str(get_color(BLUE)), width=b_width, align='center')
+        if len(green_data[0]) > 0:
+            ax.bar(green_data[0], green_data[1], color=str(get_color(GREEN)), width=b_width, align='center')
+        if len(amber_data[0]) > 0:
+            ax.bar(amber_data[0], amber_data[1], color=str(get_color(AMBER)), width=b_width, align='center')
+        if len(red_data[0]) > 0:
+            ax.bar(red_data[0], red_data[1], color=str(get_color(RED)), width=b_width, align='center')
+        if len(grey_data[0]) > 0:
+            ax.bar(grey_data[0], grey_data[1], color=str(get_color(GREY)), width=b_width, align='center')
+        if len(brag_grey_data[0]) > 0:
+            ax.bar(brag_grey_data[0], brag_grey_data[1], color=str(get_color(GREY)), width=b_width, align='center')
+
+        ax.set_xticks(x_ticks)
+        if x_freq == FREQ_MONTHLY:
+            ax.set_xticklabels(x_ticks_lbl, rotation=45, ha='right')
+        else:
+            ax.set_xticklabels(x_ticks_lbl, rotation='horizontal')
 
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(measure.m_id))
         plt.savefig(f_path)
         self.report.image(f_path, x=None, y=None, w=94, h=0, type='', link='')
+
+    @staticmethod
+    def __get_ticks_and_target(freq, data_list):
+        x_ticks, x_ticks_lbl, y_target = None, None, None
+
+        if freq == FREQ_ANNUAL:
+            x_ticks = sorted(set([try_parse(x.year, is_int=True) for x in data_list]))
+            x_ticks_lbl = sorted(set([x.f_year for x in data_list]))
+
+            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+        elif freq == FREQ_QUARTER:
+            x_ticks = sorted(set([try_parse(x.yearQuarter, is_int=True) for x in data_list]))
+            # create two list of quarters for last & current fiscal years
+            x_ticks_lbl = sorted(set([x.quarter for x in data_list]))
+            x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
+
+            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+        else:
+            x_ticks = [try_parse(x.yearMonth, is_int=True) for x in data_list]
+            # get month abbreviations
+            x_ticks_lbl = dict()
+            for x in data_list:
+                m_dt = x.month.split(' - ')
+                x_ticks_lbl[try_parse(m_dt[0].replace('M', ''), is_int=True)] = m_dt[1]
+            # create 2 list of month abbreviations for last & current fiscal year
+            x_ticks_lbl = list((x_ticks_lbl.values()))
+            x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
+
+            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+
+        return [str(x) for x in x_ticks], x_ticks_lbl, y_target
+
+    @staticmethod
+    def __get_freq(freq):
+        # if frequency is unknown, by default it is configured to monthly
+        r_freq = FREQ_MONTHLY
+        if freq in ['Q', 'QUARTER', 'QUARTERLY']:
+            r_freq = FREQ_QUARTER
+        elif freq in ['A', 'ANNUAL', 'ANNUALLY', 'YEAR', 'YEARLY', 'BI A', 'BI ANNUAL', 'BI_ANNUALLY']:
+            r_freq = FREQ_ANNUAL
+        return r_freq

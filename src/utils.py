@@ -4,7 +4,7 @@ from datetime import datetime
 from os.path import dirname, abspath, join
 
 from constants import *
-from report_text import NOT_APPLICABLE, PERCENTAGE
+from report_text import NOT_APPLICABLE, PERCENTAGE, NUMBER
 
 
 def timestamp():
@@ -161,6 +161,15 @@ def format_value(val, d_format=None):
             else:
                 val = tmp
         val = '%.2f' % (val * 100) + '%'
+    elif d_format.upper() == NUMBER.upper():
+        if isinstance(val, str):
+            tmp = try_parse(val, is_float=True)
+            if tmp is None:
+                logging.error('Failed to format non floating point string value [{}]'.format(val))
+                return None
+            else:
+                val = tmp
+        val = '%.2f' % val
     return str(val)
 
 
@@ -206,13 +215,13 @@ def get_results_per_given_frequency(data_list, frequency, freq_num):
         for fn in freq_num:
             d_fn = list()
             for data in data_list:
-                if (frequency == FREQ_ANNUAL and data.year == str(fn)) or \
-                        (frequency == FREQ_QUARTER and data.yearQuarter == str(fn)) or \
-                        (frequency == FREQ_MONTHLY and data.yearMonth == str(fn)):
+                if (frequency == FREQ_ANNUAL and data.year == fn) or \
+                        (frequency == FREQ_QUARTER and data.yearQuarter == fn) or \
+                        (frequency == FREQ_MONTHLY and data.yearMonth == fn):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.result, is_float=True) is not None]
             if len(d_fn) == 0:
-                result.append(None)
+                result.append(0)
             else:
                 result.append(d_fn[len(d_fn) - 1].result)
     return result
@@ -224,15 +233,15 @@ def get_performance_per_given_frequency(data_list, frequency, freq_num):
         for fn in freq_num:
             d_fn = list()
             for data in data_list:
-                if (frequency == FREQ_ANNUAL and data.year == str(fn)) or \
-                        (frequency == FREQ_QUARTER and data.yearQuarter == str(fn)) or \
-                        (frequency == FREQ_MONTHLY and data.yearMonth == str(fn)):
+                if (frequency == FREQ_ANNUAL and data.year == fn) or \
+                        (frequency == FREQ_QUARTER and data.yearQuarter == fn) or \
+                        (frequency == FREQ_MONTHLY and data.yearMonth == fn):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.result, is_float=True) is not None]
             if len(d_fn) == 0:
                 result.append(None)
             else:
-                result.append(d_fn[len(d_fn) - 1].performance)
+                result.append(d_fn[len(d_fn) - 1].performance.upper())
     return result
 
 

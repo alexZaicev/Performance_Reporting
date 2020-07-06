@@ -66,6 +66,18 @@ class RGEntityBase(ABC):
         self.measure_cfy = measure_cfy
         self.measure_lfy = measure_lfy
 
+    def data(self):
+        return self.data_lfy + self.data_cfy
+
+    def get_measure(self, data):
+        if data is not None:
+            if data.m_type == self.measure_cfy.m_type and data.f_year == self.measure_cfy.f_year and \
+                    data.m_id == self.measure_cfy.m_id and data.m_ref_no == self.measure_cfy.m_ref_no:
+                return self.measure_cfy
+            else:
+                return self.measure_lfy
+        return None
+
 
 class RGMeasureBase(RGModel):
     """

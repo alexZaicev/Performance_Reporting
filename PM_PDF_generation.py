@@ -47,7 +47,7 @@ plt.rcParams['figure.dpi'] = 210
 def main():
     dict_measure = {}
 
-    template_dir = os.path.join(ROOT_DIR, 'templates')
+    template_dir = os.path.join(ROOT_DIR, 'templates', 'Performance Management templates - OneDrive')
 
     # TEST FILES, not in the real PM OneDrive
     # df_measure, df_measure_data = read_template("C:/Users/id107354/Documents/DSC Insight/1 - Quick Win Projects/Performance Management/PDF Generation/Test Files")
@@ -73,8 +73,8 @@ def main():
         # sort measure_data_df by Fiscal Year and Month before passing it to measure_data - most recent one on the top
         measure_data = Measure_data(measure_data_df.sort_values(by=["Fiscal Year", "Month"], ascending=False), measure)
         dict_measure[measure.measure_id] = measure_data
-    print(df_measure['Measure Id'].size)
-    print("NUM KEYS: {}".format(len(dict_measure.keys())))
+    # print(df_measure['Measure Id'].size)
+    # print("NUM KEYS: {}".format(len(dict_measure.keys())))
     # print(dict_measure["3_14"].data["YearMonth"])
 
     # measure(s) we don't want on the final report

@@ -19,7 +19,7 @@ def get_dir_path(name=ROOT):
         RESOURCES: join(base, 'resources'),
         TEMP: join(base, 'tmp'),
         LOG: join(base, 'log'),
-        TEMPLATES: join(base, 'templates'),
+        TEMPLATES: join(base, 'templates', 'Performance Management templates - OneDrive'),
         OUTPUT: join(base, 'output')
     }
     try:
@@ -194,7 +194,7 @@ def get_target_per_given_frequency(data_list, frequency, freq_num):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.target, is_float=True) is not None]
             if len(d_fn) == 0:
-                result.append(None)
+                result.append(0)
             else:
                 result.append(d_fn[len(d_fn) - 1].target)
     return result

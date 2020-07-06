@@ -6,7 +6,7 @@ import pandas as pd
 
 from constants import *
 from models import RGDaoBase, RGError
-from utils import get_cfy, get_cfy_prefix, get_lfy_prefix, parse_columns
+from utils import get_cfy_prefix, get_lfy_prefix, parse_columns
 
 
 class TemplateDao(RGDaoBase):

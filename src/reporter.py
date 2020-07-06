@@ -3,7 +3,7 @@ import os
 from fpdf import FPDF
 
 import report_text as rt
-from models import RGReporterBase
+from models import RGReporterBase, CpmEntity
 from utils import *
 from plotly import graph_objects
 import matplotlib.pyplot as plt
@@ -43,7 +43,11 @@ class PDFReporter(RGReporterBase):
     def do_compose(self, entities=None, exclusions=None):
         graphs = 0
         coords = list(self.left_top)
+
+        # compose grid charts for CPM measures
         for entity in entities:
+            if not isinstance(entity, CpmEntity):
+                continue
             # check if entity should be excluded from the report
             if exclusions is not None and entity.measure_cfy.m_id in exclusions:
                 logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
@@ -256,8 +260,10 @@ class PDFReporter(RGReporterBase):
 
         if frequency in ['Q', 'QUARTER', 'QUARTERLY']:
             x_freq = FREQ_QUARTER
-            x_num = [try_parse(x.yearQuarter, is_int=True) for x in data_list]
+            x_num = set([try_parse(x.yearQuarter, is_int=True) for x in data_list])
+            x_num = sorted(x_num)
             x_tick_lbl = set([x.quarter for x in data_list])
+            x_tick_lbl = sorted(x_tick_lbl)
 
             y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
         elif frequency in ['A', 'ANNUAL', 'ANNUALLY', 'YEAR', 'YEARLY', 'BI A', 'BI ANNUAL', 'BI_ANNUALLY']:
@@ -270,9 +276,14 @@ class PDFReporter(RGReporterBase):
             # if frequency is unknown, by default it is configured to monthly
             x_freq = FREQ_MONTHLY
             x_num = [try_parse(x.yearMonth, is_int=True) for x in data_list]
-            x_tick_lbl = set([x.month for x in data_list])
+
+            x_tick_lbl = dict()
+            for x in data_list:
+                m_dt = x.month.split(' - ')
+                x_tick_lbl[try_parse(m_dt[0].replace('M', ''), is_int=True)] = m_dt[1]
 
             y_target = get_target_per_given_frequency(data_list, x_freq, x_num)
+            x_tick_lbl = x_tick_lbl.values()
 
         ax.plot(x_num, y_target, "k--", color='darkblue', zorder=4)
         baseline = try_parse(measure.baseline, is_float=True)
@@ -285,14 +296,16 @@ class PDFReporter(RGReporterBase):
         results = get_results_per_given_frequency(data_list, x_freq, x_num)
         performance = get_performance_per_given_frequency(data_list, x_freq, x_num)
 
-        bar_width = 0.6
-
         blue_data = sort_results_and_months_by_performance(results, x_num, performance, BLUE)
         green_data = sort_results_and_months_by_performance(results, x_num, performance, GREEN)
         amber_data = sort_results_and_months_by_performance(results, x_num, performance, AMBER)
         red_data = sort_results_and_months_by_performance(results, x_num, performance, RED)
         grey_data = sort_results_and_months_by_performance(results, x_num, performance, GREY)
         brag_grey_data = sort_results_and_months_by_performance(results, x_num, performance, None)
+
+        if x_freq == FREQ_ANNUAL or len(x_num) == 1:
+            ax.set_xlim(x_num[0] - 1, x_num[0] + 1)
+        bar_width = 0.6
 
         ax.bar(blue_data[0], blue_data[1], width=bar_width, color=str(get_color(BLUE)), zorder=3)
         ax.bar(green_data[0], green_data[1], width=bar_width, color=str(get_color(GREEN)), zorder=3)

@@ -19,7 +19,7 @@ def get_dir_path(name=ROOT):
         RESOURCES: join(base, 'resources'),
         TEMP: join(base, 'tmp'),
         LOG: join(base, 'log'),
-        TEMPLATES: join(base, 'templates', 'Performance Management templates - OneDrive'),
+        TEMPLATES: join(base, 'templates'),
         OUTPUT: join(base, 'output')
     }
     try:
@@ -100,19 +100,23 @@ def parse_columns(column):
 
 
 def get_val(df, key):
-    val = df[key]
-    if val is None or (str(val) == 'nan'):
-        return ''
-    else:
-        if isinstance(val, str):
-            try:
-                temp = parse_unicode_str(val).encode(encoding='utf-8')
-                val = temp.decode(encoding=REPORT_ENCODING, errors='strict')
-            except UnicodeEncodeError:
-                logging.error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
-            except UnicodeDecodeError:
-                logging.error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
-        return val
+    try:
+        val = df[key]
+        if val is None or (str(val) == 'nan'):
+            return ''
+        else:
+            if isinstance(val, str):
+                try:
+                    temp = parse_unicode_str(val).encode(encoding='utf-8')
+                    val = temp.decode(encoding=REPORT_ENCODING, errors='strict')
+                except UnicodeEncodeError:
+                    logging.error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
+                except UnicodeDecodeError:
+                    logging.error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
+            return val
+    except KeyError:
+        logging.error('Data frame does not contain the following key value [{}]'.format(key))
+    return None
 
 
 def parse_unicode_str(val):
@@ -273,3 +277,26 @@ def sort_results_and_months_by_performance(r_list, freq_num, p_list, value):
                         months.append(freq_num[i])
                         results.append(r_list[i])
     return months, results
+
+
+def sort_entities_by_performance(entities, performance, exclusions=()):
+    def __get_data(data_list):
+        for i in range(len(data_list) - 1, 0, -1):
+            if data_list[i].performance is None:
+                continue
+            dp = data_list[i].performance.upper().replace(' ', '_')
+            if dp == performance:
+                return data_list[i]
+        return None
+    result = list()
+    if entities is not None and performance is not None:
+        for e in entities:
+            if e.measure_cfy.m_id in exclusions or e.measure_lfy.m_id in exclusions:
+                continue
+            r_data = __get_data(e.data_cfy)
+            if r_data is None:
+                r_data = __get_data(e.data_lfy)
+
+            if r_data is not None:
+                result.append(r_data)
+    return result

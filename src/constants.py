@@ -24,11 +24,21 @@ DEJAVU_SERIF_CONDENSED_BOLD = 'DejaVuSerifCondensed-Bold'
 LUCIDA_SANS = 'LucidaSans'
 
 """
+Template Column Names
+"""
+CURRENT_YEAR_DATA = 'CurrentYearData'
+CURRENT_YEAR_MEASURES = 'CurrentYearMeasures'
+PMT_ADDITIONAL_DATA = 'PMTAdditionalData'
+
+"""
 Measure TYPES
 """
 CPM = 'CPM'
 SDM = 'SDM'
 SSG = 'SSG'
+# used by templates that are not related to
+# measure data sources
+UNKNOWN = 'UNKNOWN'
 
 """
 Template column names
@@ -89,6 +99,8 @@ CABINET_MEMBERS_SIGN_OFF_DATE = 'CABINET_MEMBERS_SIGN_OFF_DATE'
 YEAR = 'YEAR'
 YEAR_MONTH = 'YEAR_MONTH'
 YEAR_QUARTER = 'YEAR_QUARTER'
+MEASURE_TEXT_COLUMN_1 = 'MEASURE_TEXT_COLUMN1'
+MEASURE_TEXT_COLUMN_2 = 'MEASURE_TEXT_COLUMN2'
 
 """
 Application constants
@@ -103,6 +115,15 @@ FREQ_ANNUAL = 'A'
 FREQ_QUARTER = 'Q'
 FREQ_MONTHLY = 'M'
 DOTS = ["p", "q", "r", "s", "u"]
+
+PERF_BLUE = 'BLUE'
+PERF_RED = 'RED'
+PERF_AMBER = 'AMBER'
+PERF_GREEN = 'GREEN'
+PERF_NYD = 'NYD'
+PERF_AWAITING = 'AWAITING'
+PERF_TREND = 'TREND'
+PERF_PREV_REPORTED = 'PREVIOUSLY_REPORTED'
 
 ROOT = 'ROOT'
 TEMP = 'TEMP'

@@ -1,14 +1,14 @@
+import logging
 import os
 
+import matplotlib.pyplot as plt
 from fpdf import FPDF
+from matplotlib.ticker import PercentFormatter
+from plotly import graph_objects
 
 import report_text as rt
-from models import RGReporterBase, CpmEntity
+from models import RGReporterBase, CpmEntity, UnknownEntity
 from utils import *
-from plotly import graph_objects
-import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
-import logging
 
 
 class PDFReporter(RGReporterBase):
@@ -41,6 +41,128 @@ class PDFReporter(RGReporterBase):
         self.report.set_auto_page_break(auto=False)
 
     def do_compose(self, entities=None, exclusions=None):
+        self.do_compose_scorecard(entities, exclusions)
+        # self.do_compose_grid_charts(entities, exclusions)
+
+    def do_compose_scorecard(self, entities=None, exclusions=None):
+        self.report.add_page()
+        self.report.set_xy(7.5, 98)
+        self.report.set_font(REPORT_FONT, '', 6)
+        # set grid
+        self.report.cell(112, h=100, border=1)
+        self.report.cell(153, h=100, border=1)
+        self.report.cell(140, h=100, border=1)
+
+        self.__compose_measure_summary(entities)
+        self.__compose_key_results_actions(entities)
+
+    def __compose_measure_summary(self, entities):
+        e_cpm = [e for e in entities if isinstance(e, CpmEntity)]
+        h = 100
+        self.report.set_xy(9, 100)
+        self.report.set_font(REPORT_FONT, 'B', 6)
+        self.report.cell(35, 6, '{}:'.format(rt.TOTAL_MEASURES), align='L')
+        n_cpm = len(e_cpm)
+        self.report.cell(20, 6, '{}'.format(n_cpm), align='L')
+
+        b_cpm = sort_entities_by_performance(e_cpm, PERF_BLUE)
+        exc = [x.m_id for x in b_cpm]
+        g_cpm = sort_entities_by_performance(e_cpm, PERF_GREEN, exclusions=exc)
+        exc = exc + [x.m_id for x in g_cpm]
+        r_cpm = sort_entities_by_performance(e_cpm, PERF_RED, exclusions=exc)
+        exc = exc + [x.m_id for x in r_cpm]
+        a_cpm = sort_entities_by_performance(e_cpm, PERF_AMBER, exclusions=exc)
+        exc = exc + [x.m_id for x in a_cpm]
+        nyd_cpm = sort_entities_by_performance(e_cpm, PERF_NYD, exclusions=exc)
+        exc = exc + [x.m_id for x in nyd_cpm]
+        pr_cpm = sort_entities_by_performance(e_cpm, PERF_PREV_REPORTED, exclusions=exc)
+        exc = exc + [x.m_id for x in pr_cpm]
+        aw_cpm = sort_entities_by_performance(e_cpm, PERF_AWAITING, exclusions=exc)
+        exc = exc + [x.m_id for x in aw_cpm]
+        t_cpm = sort_entities_by_performance(e_cpm, PERF_TREND, exclusions=exc)
+        h += 4
+        self.report.set_xy(15, h)
+        self.report.cell(35, 6, '{}:'.format(rt.AVAILABLE_TO_REPORT), align='L')
+        m_sum = len(b_cpm) + len(g_cpm) + len(r_cpm) + len(a_cpm) + len(t_cpm)
+        self.report.cell(50, 6, rt.INCLUDING_TREND_OR_PROJECT_UPDATE_MEASURES.format(m_sum, len(t_cpm)), align='L')
+
+        h += 6
+        self.report.set_xy(7.5, h)
+        for i in range(0, 7, 1):
+            self.report.cell(16, h=8, border=1)
+
+        h += 2
+        self.report.set_xy(23.5, h)
+        self.report.multi_cell(16, h=2.5, txt=rt.LEAN_WORK_INVEST, align='C')
+        self.report.multi_cell(16, h=2.5, txt=rt.GROW_UP, align='C')
+        self.report.multi_cell(16, h=2.5, txt=rt.AGE_WELL, align='C')
+        self.report.multi_cell(16, h=2.5, txt=rt.LIVE_IN, align='C')
+        self.report.multi_cell(16, h=2.5, txt=rt.CWG, align='C')
+        self.report.multi_cell(16, h=2.5, txt=rt.TOTAL, align='C')
+
+        h += 6
+        self.report.set_font(REPORT_FONT, '', 6)
+        for i in range(0, 8, 1):
+            self.report.set_xy(7.5, h)
+            for j in range(0, 7, 1):
+                if i == 7:
+                    self.report.cell(16, h=6, border=1)
+                else:
+                    self.report.cell(16, h=4, border=1)
+            self.report.set_xy(7.5, h)
+
+            if i == 0:
+                self.__compose_measure_summary_row(rt.BLUE, b_cpm, get_color(BLUE))
+            elif i == 1:
+                self.__compose_measure_summary_row(rt.GREEN, g_cpm, get_color(GREEN))
+            elif i == 2:
+                self.__compose_measure_summary_row(rt.AMBER, a_cpm, get_color(AMBER))
+            elif i == 3:
+                self.__compose_measure_summary_row(rt.RED, r_cpm, get_color(RED))
+            elif i == 4:
+                self.__compose_measure_summary_row(rt.TREND, t_cpm, get_color(GREY))
+            elif i == 5:
+                self.__compose_measure_summary_row(rt.NYD, nyd_cpm)
+            elif i == 6:
+                self.__compose_measure_summary_row(rt.AWAITING, aw_cpm)
+            elif i == 7:
+                self.__compose_measure_summary_row(rt.PREVIOUSLY_REPORTED, pr_cpm)
+            h += 4
+
+    def __compose_measure_summary_row(self, txt='', cpm=(), color=get_color(BLACK)):
+        self.report.set_text_color(color.r, color.g, color.b)
+        if txt == rt.PREVIOUSLY_REPORTED:
+            self.report.multi_cell(16, h=2.5, txt=txt, align='L')
+        else:
+            self.report.multi_cell(16, h=4, txt=txt, align='L')
+        color = get_color(BLACK)
+        self.report.set_text_color(color.r, color.g, color.b)
+        self.report.cell(16, h=5, txt='0', align='C')
+        self.report.cell(16, h=5, txt='0', align='C')
+        self.report.cell(16, h=5, txt='0', align='C')
+        self.report.cell(16, h=5, txt='0', align='C')
+        self.report.cell(16, h=5, txt='0', align='C')
+        self.report.cell(16, h=5, txt='{}'.format(len(cpm)), align='C')
+
+    def __compose_key_results_actions(self, entities):
+        for entity in entities:
+            if not isinstance(entity, UnknownEntity):
+                continue
+            if entity.data_cfy[0].m_id == 'PMT_01':
+                comment = ''
+                for d in entity.data_cfy:
+                    if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
+                        comment = d.measureTextColumn1
+                if len(comment) == 0:
+                    for d in entity.data_lfy:
+                        if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
+                            comment = d.measureTextColumn1
+                self.report.set_xy(121, 100)
+                self.report.set_font(REPORT_FONT, '', 6)
+                self.report.multi_cell(150, h=2.5, txt=comment, align='J')
+                break
+
+    def do_compose_grid_charts(self, entities=None, exclusions=None):
         graphs = 0
         coords = list(self.left_top)
 
@@ -70,25 +192,33 @@ class PDFReporter(RGReporterBase):
             # check if number of graphs on page has exceeded the allowed amount
             # then create setup properties for new page to be added
             if graphs % (self.grid_size[0] * self.grid_size[1]) == 0:
-                self.__set_grid()
+                self.__set_grid(n_cells=graphs)
                 coords = list(self.left_top)
-
-        self.__set_grid()
+                graphs = 0
+        self.__set_grid(n_cells=graphs)
 
     def do_export(self, out_dir=None):
         self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
                            dest='F')
 
-    def __set_grid(self):
+    def __set_grid(self, n_cells=0):
+        if n_cells == 0:
+            return
         self.report.set_xy(10, 30)
         self.report.set_font(REPORT_FONT, 'B', 8)
-        self.report.cell(135, 118, '', 1, 0, '')
-        self.report.cell(135, 118, '', 1, 0, '')
-        self.report.cell(135, 118, '', 1, 2, '')
-        self.report.cell(-270)
-        self.report.cell(135, 118, '', 1, 0, '')
-        self.report.cell(135, 118, '', 1, 0, '')
-        self.report.cell(135, 118, '', 1, 2, '')
+        if n_cells > 0:
+            self.report.cell(w=135, h=118, border=1)
+        if n_cells > 1:
+            self.report.cell(w=135, h=118, border=1)
+        if n_cells > 2:
+            self.report.cell(w=135, h=118, border=1, ln=2)
+        if n_cells > 3:
+            self.report.cell(-270)
+            self.report.cell(w=135, h=118, border=1)
+        if n_cells > 4:
+            self.report.cell(w=135, h=118, border=1)
+        if n_cells > 5:
+            self.report.cell(w=135, h=118, border=1, ln=2)
 
     def __add_empty_line(self):
         self.report.set_font(REPORT_FONT, '', 5.5)

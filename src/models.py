@@ -217,7 +217,7 @@ class RGDaoBase(ABC):
         return self.__entities
 
     def __create_measures(self):
-        df_cym, df_cyd = self.get_data_frames()
+        df_cym, df_cyd, df_unknown = self.get_data_frames()
         if df_cym is None:
             raise RGError('Unable to create measures from invalid data frame object [{}]'.format(df_cym))
         self.__entities = list()
@@ -260,8 +260,29 @@ class RGDaoBase(ABC):
                 self.__entities.append(
                     RGEntityFactory.create_entity(m_type=m_cfy.m_type, data_cfy=d_cfy, data_lfy=d_lfy,
                                                   measure_cfy=m_cfy, measure_lfy=m_lfy))
+        # parse unknown data frame
+        self.__parse_unknown_data(df_unknown)
 
         logging.debug('[{}] entities has been parsed'.format(len(self.__entities)))
+
+    def __parse_unknown_data(self, df_unknown=None):
+        if df_unknown is None or df_unknown.size == 0:
+            return
+        d_list = list()
+        for idx, line in df_unknown.iterrows():
+            d_list.append(RGDataFactory.create_data(m_type=UNKNOWN, df=line))
+
+        values = sorted(set(map(lambda x: x.m_id, d_list)))
+        d_list = [[y for y in d_list if y.m_id == x] for x in values]
+
+        for d_group in d_list:
+            d_cfy, d_lfy = list(), list()
+            for d in d_group:
+                if d.f_year == get_cfy_prefix():
+                    d_cfy.append(d)
+                elif d.f_year == get_lfy_prefix():
+                    d_lfy.append(d)
+            self.__entities.append(RGEntityFactory.create_entity(m_type=UNKNOWN, data_lfy=d_lfy, data_cfy=d_cfy))
 
     @staticmethod
     def __get_data_for_measure(measure, data_list):
@@ -298,9 +319,10 @@ class RGEntityFactory(object):
         :return:
         """
         __TYPE_CREATION_MAP = {
-            'CPM': RGEntityFactory.__create_cpm_entity,
-            'SDM': RGEntityFactory.__create_sdm_entity,
-            'SSG': RGEntityFactory.__create_ssg_entity
+            CPM: RGEntityFactory.__create_cpm_entity,
+            SDM: RGEntityFactory.__create_sdm_entity,
+            SSG: RGEntityFactory.__create_ssg_entity,
+            UNKNOWN: RGEntityFactory.__create_unknown_entity
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -319,6 +341,10 @@ class RGEntityFactory(object):
     @staticmethod
     def __create_ssg_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
         return SsgEntity(data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy, measure_lfy=measure_lfy)
+
+    @staticmethod
+    def __create_unknown_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return UnknownEntity(data_lfy=data_lfy, data_cfy=data_cfy)
 
 
 class RGDataFactory(object):
@@ -342,9 +368,10 @@ class RGDataFactory(object):
         :return:
         """
         __TYPE_CREATION_MAP = {
-            'CPM': RGDataFactory.__create_cpm_data,
-            'SDM': RGDataFactory.__create_sdm_data,
-            'SSG': RGDataFactory.__create_ssg_data
+            CPM: RGDataFactory.__create_cpm_data,
+            SDM: RGDataFactory.__create_sdm_data,
+            SSG: RGDataFactory.__create_ssg_data,
+            UNKNOWN: RGDataFactory.__create_unknown_data
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -363,6 +390,10 @@ class RGDataFactory(object):
     @staticmethod
     def __create_ssg_data(df=None):
         return SsgData(df=df)
+
+    @staticmethod
+    def __create_unknown_data(df=None):
+        return UnknownData(df=df)
 
 
 class RGMeasureFactory(object):
@@ -415,23 +446,29 @@ class RGMeasureFactory(object):
 
 class CpmEntity(RGEntityBase):
 
-    def __init__(self, m_type=None, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
-        RGEntityBase.__init__(self, m_type=CPM, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
+    def __init__(self, m_type=CPM, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
                               measure_lfy=measure_lfy)
 
 
 class SdmEntity(RGEntityBase):
 
-    def __init__(self, m_type=None, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
-        RGEntityBase.__init__(self, m_type=SDM, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
+    def __init__(self, m_type=SDM, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
                               measure_lfy=measure_lfy)
 
 
 class SsgEntity(RGEntityBase):
 
-    def __init__(self, m_type=None, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
-        RGEntityBase.__init__(self, m_type=SSG, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
+    def __init__(self, m_type=SSG, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy,
                               measure_lfy=measure_lfy)
+
+
+class UnknownEntity(RGEntityBase):
+
+    def __init__(self, m_type=UNKNOWN, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
 
 
 #####################################################################################
@@ -465,17 +502,11 @@ class CpmData(RGDataBase):
     def __init__(self, m_type=CPM, df=None):
         RGDataBase.__init__(self, m_type=m_type, df=df)
 
-    def load_df(self, df=None):
-        pass
-
 
 class SdmData(RGDataBase):
 
     def __init__(self, m_type=SDM, df=None):
         RGDataBase.__init__(self, m_type=m_type, df=df)
-
-    def load_df(self, df=None):
-        pass
 
 
 class SsgData(RGDataBase):
@@ -483,5 +514,10 @@ class SsgData(RGDataBase):
     def __init__(self, m_type=SSG, df=None):
         RGDataBase.__init__(self, m_type=m_type, df=df)
 
-    def load_df(self, df=None):
-        pass
+
+class UnknownData(RGDataBase):
+    def __init__(self, m_type=UNKNOWN, df=None):
+        RGDataBase.__init__(self, m_type=m_type, df=df)
+        self.measureTextColumn1 = get_val(df, MEASURE_TEXT_COLUMN_1)
+        self.measureTextColumn2 = get_val(df, MEASURE_TEXT_COLUMN_2)
+

@@ -7,6 +7,7 @@ import pandas as pd
 from constants import *
 from models import RGDaoBase, RGError
 from utils import get_cfy_prefix, get_lfy_prefix, parse_columns
+from xlrd.biffh import XLRDError
 
 
 class TemplateDao(RGDaoBase):
@@ -24,28 +25,38 @@ class TemplateDao(RGDaoBase):
     def get_data_frames(self):
         df_cym = pd.DataFrame()
         df_cyd = pd.DataFrame()
+        df_unknown = pd.DataFrame()
         templates = self.get_templates()
         for name in templates.keys():
             logging.debug('Reading [{}] templates....'.format(name))
             for template in templates[name]:
-                dict_template = pd.read_excel(template, sheet_name=["CurrentYearData", "CurrentYearMeasures"],
-                                              encoding='utf-8')
-                # IMPORTANT: reassign data frame value after append
-                # otherwise data will not be saved
-                temp = dict_template["CurrentYearMeasures"]
-                temp.columns = map(parse_columns, temp.columns)
-                df_cym = df_cym.append(temp)
+                try:
+                    dict_template = pd.read_excel(template, sheet_name=[CURRENT_YEAR_DATA, CURRENT_YEAR_MEASURES],
+                                                  encoding='utf-8')
+                    # IMPORTANT: reassign data frame value after append
+                    # otherwise data will not be saved
+                    temp = dict_template[CURRENT_YEAR_MEASURES]
+                    temp.columns = map(parse_columns, temp.columns)
+                    df_cym = df_cym.append(temp)
 
-                temp = dict_template["CurrentYearData"]
-                temp.columns = map(parse_columns, temp.columns)
-                df_cyd = df_cyd.append(temp)
+                    temp = dict_template[CURRENT_YEAR_DATA]
+                    temp.columns = map(parse_columns, temp.columns)
+                    df_cyd = df_cyd.append(temp)
 
-                df_cyd.loc[:, YEAR_MONTH] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "").str.cat(
-                    df_cyd.loc[:, MONTH].str[1:3])
-                df_cyd.loc[:, YEAR_QUARTER] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "").str.cat(
-                    df_cyd.loc[:, QUARTER].str[1:2])
-                df_cyd.loc[:, YEAR] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "")
-        return tuple([df_cym, df_cyd])
+                    df_cyd.loc[:, YEAR_MONTH] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "").str.cat(
+                        df_cyd.loc[:, MONTH].str[1:3])
+                    df_cyd.loc[:, YEAR_QUARTER] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "").str.cat(
+                        df_cyd.loc[:, QUARTER].str[1:2])
+                    df_cyd.loc[:, YEAR] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "")
+                except XLRDError as e:
+                    logging.warning('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
+
+                    dict_template = pd.read_excel(template, sheet_name=[PMT_ADDITIONAL_DATA], encoding='utf-8')
+                    temp = dict_template[PMT_ADDITIONAL_DATA]
+                    temp.columns = map(parse_columns, temp.columns)
+                    df_unknown = df_unknown.append(temp)
+
+        return tuple([df_cym, df_cyd, df_unknown])
 
     def search_in_root(self, pattern=None):
         return list(Path(self.path).rglob(pattern))

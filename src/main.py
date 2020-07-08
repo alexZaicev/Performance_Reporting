@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from os import listdir, mkdir, remove
 from os.path import isfile, join, exists, dirname, abspath
 
-from dao import ExcelTemplateDao
+from dao import ExcelTemplateDao, ImageFileDao
 from models import *
 from reporter import PDFReporter
 from utils import get_dir_path
@@ -10,9 +10,14 @@ from utils import get_dir_path
 
 def __main(arg0=None):
     dao = ExcelTemplateDao(year=arg0.fiscal_year, path=arg0.templates_root)
+    f_dao = ImageFileDao(path=arg0.templates_root)
     reporter = PDFReporter()
     try:
-        reporter.generate(entities=dao.get_entities(), exclusions=arg0.exclusions, out_dir=arg0.out_dir)
+        options = RGReporterOptions(entities=dao.get_entities(),
+                                    exclusions=arg0.exclusions,
+                                    out_dir=arg0.out_dir,
+                                    images=f_dao.get_files())
+        reporter.generate(options)
     except RGError as ex:
         logging.error(str(ex))
 

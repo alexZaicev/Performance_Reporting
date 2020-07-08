@@ -44,7 +44,9 @@ def get_color(name=BLACK):
         GREEN: RGColor(255, 153, 51),
         AMBER: RGColor(g=255),
         BLUE: RGColor(g=128, b=255),
-        GREY: RGColor(r=128, g=128, b=128)
+        GREY: RGColor(r=128, g=128, b=128),
+        DARK_BLUE: RGColor(r=31, g=73, b=125),
+        AQUA: RGColor(r=83, g=141, b=213)
     }
     try:
         return COLOR_MAP[name]
@@ -288,6 +290,7 @@ def sort_entities_by_performance(entities, performance, exclusions=()):
             if dp == performance:
                 return data_list[i]
         return None
+
     result = list()
     if entities is not None and performance is not None:
         for e in entities:
@@ -298,5 +301,14 @@ def sort_entities_by_performance(entities, performance, exclusions=()):
                 r_data = __get_data(e.data_lfy)
 
             if r_data is not None:
-                result.append(r_data)
+                result.append(e)
+    return result
+
+
+def sort_entities_by_outcome(entities, outcome):
+    result = list()
+    if entities is not None and outcome is not None:
+        for e in entities:
+            if isinstance(e.measure_cfy.outcome, str) and outcome in e.measure_cfy.outcome:
+                result.append(e)
     return result

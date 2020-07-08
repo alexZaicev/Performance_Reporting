@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
-from constants import *
-from datetime import datetime
 import logging
 import os
 import shutil
+from abc import ABC, abstractmethod
+from datetime import datetime
+from pathlib import Path
 
-from utils import get_val, get_lfy_prefix, get_cfy_prefix, get_dir_path
+from constants import *
+from utils import get_val, get_dir_path
 
 
 class RGError(Exception):
@@ -29,13 +30,6 @@ class RGColor(object):
             self.__ff(self.g),
             self.__ff(self.b)
         )
-
-    # return 'rgb({}, {}, {})'.format(self.r, self.g, self.b)
-    # return '#{}{}{}'.format(
-    #     hex(self.r)[2:],
-    #     hex(self.g)[2:],
-    #     hex(self.b)[2:]
-    # )
 
     @staticmethod
     def __ff(val):
@@ -148,6 +142,16 @@ class RGDataBase(RGModel):
         self.yearQuarter = get_val(df, YEAR_QUARTER)
 
 
+class RGReporterOptions(object):
+
+    def __init__(self, entities=None, exclusions=None, out_dir=None, images=None):
+        object.__init__(self)
+        self.entities = entities
+        self.exclusions = exclusions
+        self.out_dir = out_dir
+        self.images = images
+
+
 class RGReporterBase(ABC):
     """
     RG reporter base class
@@ -163,20 +167,22 @@ class RGReporterBase(ABC):
             shutil.rmtree(tmp_dir)
         os.mkdir(tmp_dir)
 
-    def generate(self, entities=None, exclusions=None, out_dir=None):
+    def generate(self, options=None):
+        if options is None or not isinstance(options, RGReporterOptions):
+            raise RGError('Invalid report options provided')
         logging.info('Generating report...')
         self.do_init()
-        self.do_compose(entities=entities, exclusions=exclusions)
-        self.do_prepare_export(out_dir=out_dir)
-        self.do_export(out_dir=out_dir)
+        self.do_compose(options=options)
+        self.do_prepare_export(out_dir=options.out_dir)
+        self.do_export(out_dir=options.out_dir)
         self.do_clean()
-        logging.info('Report successfully generated! [{}]'.format(out_dir))
+        logging.info('Report successfully generated! [{}]'.format(options.out_dir))
 
     @abstractmethod
-    def do_compose(self, entities=None, exclusions=None):
+    def do_compose(self, options=None):
         if self.report is None:
             raise RGError('PDF document has not been initialized')
-        if entities is None or len(entities) < 1:
+        if options.entities is None or len(options.entities) < 1:
             raise RGError('No measures provided to PDF report generator')
 
     def do_prepare_export(self, out_dir=None):
@@ -192,7 +198,8 @@ class RGReporterBase(ABC):
         with open(os.path.join(out_dir, self.report_name), 'w') as ff:
             ff.write(self.report)
 
-    def do_clean(self):
+    @staticmethod
+    def do_clean():
         tmp_dir = get_dir_path(TEMP)
         if os.path.exists(tmp_dir):
             shutil.rmtree(tmp_dir)
@@ -204,95 +211,17 @@ class RGDaoBase(ABC):
         if year is None:
             year = datetime.now().year
         self.year = year
-        self.__entities = None
 
     @abstractmethod
-    def get_data_frames(self):
-        raise RGError('Unimplemented method RGDaoBase.get_data_frame')
-
     def get_entities(self):
-        if self.__entities is not None:
-            return self.__entities
-        self.__create_measures()
-        return self.__entities
+        raise RGError('Unimplemented method RGDaoBase.get_entities')
 
-    def __create_measures(self):
-        df_cym, df_cyd, df_unknown = self.get_data_frames()
-        if df_cym is None:
-            raise RGError('Unable to create measures from invalid data frame object [{}]'.format(df_cym))
-        self.__entities = list()
+    @abstractmethod
+    def get_files(self):
+        raise RGError('Unimplemented method RGDaoBase.get_files')
 
-        d_list = list()
-        m_list = list()
-        m_ids = set()
-
-        for idx, line in df_cym.iterrows():
-            m = RGMeasureFactory.create_measure(m_type=get_val(line, MEASURE_TYPE).upper(), df=line)
-            m_ids.add(m.m_id)
-            m_list.append(m)
-        for idx, line in df_cyd.iterrows():
-            d_list.append(RGDataFactory.create_data(m_type=get_val(line, MEASURE_TYPE).upper(), df=line))
-
-        m_ids = sorted(m_ids)
-        m_list.sort(key=lambda x: x.m_id)
-        d_list.sort(key=lambda x: x.m_id)
-
-        for m_id in m_ids:
-            m_cfy = None
-            m_lfy = None
-            d_cfy = None
-            d_lfy = None
-            for m in m_list:
-                if m.m_id == m_id:
-                    if m.f_year == get_cfy_prefix():
-                        m_cfy = m
-                        continue
-                    if m.f_year == get_lfy_prefix():
-                        m_lfy = m
-                        continue
-            if m_cfy is not None:
-                d_cfy = self.__get_data_for_measure(m_cfy, d_list)
-            if m_lfy is not None:
-                d_lfy = self.__get_data_for_measure(m_lfy, d_list)
-            if m_cfy is not None and m_lfy is not None and \
-                    d_cfy is not None and len(d_cfy) > 0 and \
-                    d_lfy is not None and len(d_lfy) > 0:
-                self.__entities.append(
-                    RGEntityFactory.create_entity(m_type=m_cfy.m_type, data_cfy=d_cfy, data_lfy=d_lfy,
-                                                  measure_cfy=m_cfy, measure_lfy=m_lfy))
-        # parse unknown data frame
-        self.__parse_unknown_data(df_unknown)
-
-        logging.debug('[{}] entities has been parsed'.format(len(self.__entities)))
-
-    def __parse_unknown_data(self, df_unknown=None):
-        if df_unknown is None or df_unknown.size == 0:
-            return
-        d_list = list()
-        for idx, line in df_unknown.iterrows():
-            d_list.append(RGDataFactory.create_data(m_type=UNKNOWN, df=line))
-
-        values = sorted(set(map(lambda x: x.m_id, d_list)))
-        d_list = [[y for y in d_list if y.m_id == x] for x in values]
-
-        for d_group in d_list:
-            d_cfy, d_lfy = list(), list()
-            for d in d_group:
-                if d.f_year == get_cfy_prefix():
-                    d_cfy.append(d)
-                elif d.f_year == get_lfy_prefix():
-                    d_lfy.append(d)
-            self.__entities.append(RGEntityFactory.create_entity(m_type=UNKNOWN, data_lfy=d_lfy, data_cfy=d_cfy))
-
-    @staticmethod
-    def __get_data_for_measure(measure, data_list):
-        result = list()
-        for data in data_list:
-            if measure.m_type == data.m_type and measure.m_id == data.m_id and \
-                    measure.f_year == data.f_year and measure.m_ref_no == data.m_ref_no:
-                result.append(data)
-        result.sort(key=lambda x: '{} {}'.format(x.f_year, x.month))
-        return result
+    def search_in_root(self, path=None, pattern=None):
+        return list(Path(path).rglob(pattern))
 
 
 class RGEntityFactory(object):
@@ -520,4 +449,3 @@ class UnknownData(RGDataBase):
         RGDataBase.__init__(self, m_type=m_type, df=df)
         self.measureTextColumn1 = get_val(df, MEASURE_TEXT_COLUMN_1)
         self.measureTextColumn2 = get_val(df, MEASURE_TEXT_COLUMN_2)
-

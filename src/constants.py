@@ -9,6 +9,8 @@ AMBER = 'AMBER'
 BLUE = 'BLUE'
 TREND = 'TREND'
 GREY = 'GREY'
+DARK_BLUE = 'DARK_BLUE'
+AQUA = 'AQUA'
 
 """
 Fonts
@@ -125,6 +127,13 @@ PERF_AWAITING = 'AWAITING'
 PERF_TREND = 'TREND'
 PERF_PREV_REPORTED = 'PREVIOUSLY_REPORTED'
 
+OUTCOME_LEAN_WORK_INVEST = 'Birmingham is an entrepreneurial city to learn, work and invest in'
+OUTCOME_GROW_UP = 'Birmingham is an aspirational city to grow up in'
+OUTCOME_CWG = 'Birmingham residents gain the maximum benefit from hosting the Commonwealth Games'
+OUTCOME_AGE_WELL = 'Birmingham is a fulfilling city to age well in'
+OUTCOME_SSG = 'Support Services and Governance'
+OUTCOME_LIVE_IN = 'Birmingham is a great city to live in'
+
 ROOT = 'ROOT'
 TEMP = 'TEMP'
 RESOURCES = 'RESOURCES'
@@ -132,3 +141,10 @@ LOG = 'LOG'
 TEMPLATES = 'TEMPLATES'
 OUTPUT = 'OUTPUT'
 
+"""
+Image file names
+"""
+LEGEND = 'LEGEND'
+OFSTED = 'OFSTED'
+RISK_MAP = 'RISK_MAP'
+WORKFORCE_EXPENDITURE = 'WORKFORCE_EXPENDITURE'

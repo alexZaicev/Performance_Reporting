@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from os import listdir, mkdir, remove
-from os.path import isfile, join, exists, dirname, abspath
+from os.path import isfile, join, exists
 
 from dao import ExcelTemplateDao, ImageFileDao
 from models import *

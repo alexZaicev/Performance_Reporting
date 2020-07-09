@@ -312,3 +312,12 @@ def sort_entities_by_outcome(entities, outcome):
             if isinstance(e.measure_cfy.outcome, str) and outcome in e.measure_cfy.outcome:
                 result.append(e)
     return result
+
+
+def remove_entities_with_no_outcome(entities):
+    result = list()
+    if entities is not None:
+        for e in entities:
+            if e.measure_cfy.outcome is not None and len(e.measure_cfy.outcome) > 0:
+                result.append(e)
+    return result

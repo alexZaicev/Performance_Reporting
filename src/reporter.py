@@ -6,7 +6,7 @@ from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
 import report_text as rt
-from models import RGReporterBase, CpmEntity, UnknownEntity
+from models import RGReporterBase, CpmEntity, UnknownEntity, SsgEntity, SdmEntity
 from utils import *
 
 
@@ -39,39 +39,23 @@ class PDFReporter(RGReporterBase):
 
         self.report.set_auto_page_break(auto=False)
 
+    def do_export(self, out_dir=None):
+        self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
+                           dest='F')
+
     def do_compose(self, options=None):
-        self.do_compose_cpm_scorecard(options)
-        self.do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
+        self.__do_compose_cpm_scorecard(options)
+        self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
+        self.__do_compose_ssg_sdm_scorecard(options)
 
-    def do_compose_cpm_scorecard(self, options):
-        self.report.add_page()
-        h = 98
-        self.report.set_xy(7.5, h)
-        self.report.set_font(REPORT_FONT, '', 6)
-        # set grid
-        # TODO get month and FY
-        color = get_color(DARK_BLUE)
-        self.report.set_fill_color(color.r, color.g, color.b)
-        color = get_color(WHITE)
-        self.report.set_text_color(color.r, color.g, color.b)
-        self.report.set_font(REPORT_FONT, 'B', 8)
-        self.report.cell(405, h=8.5, txt=rt.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
-
-        h += 8.5
-        self.report.set_xy(7.5, h)
-        color = get_color(AQUA)
-        self.report.set_fill_color(color.r, color.g, color.b)
-        color = get_color(WHITE)
-        self.report.set_text_color(color.r, color.g, color.b)
+    def __do_compose_cpm_scorecard(self, options):
+        h = self.__create_scorecard_top(add_page=True)
 
         self.report.cell(112, h=8.5, txt=rt.COUNCIL_PLANS_MEASURE_SUMMARY, fill=1, align='C', border=1)
         self.report.cell(153, h=8.5, txt=rt.KEY_RESULTS_ACTIONS, fill=1, align='C', border=1)
         self.report.cell(140, h=8.5, txt=rt.KEY, fill=1, align='C', border=1)
 
-        color = get_color(WHITE)
-        self.report.set_fill_color(color.r, color.g, color.b)
-        color = get_color(BLACK)
-        self.report.set_text_color(color.r, color.g, color.b)
+        self.__reset_colors()
 
         h += 8.5
         self.report.set_xy(7.5, h)
@@ -80,40 +64,44 @@ class PDFReporter(RGReporterBase):
         self.report.cell(140, h=60, border=1)
 
         self.__compose_measure_summary(h, options.entities)
-        self.__compose_key_results_actions(h, options.entities)
+        self.__compose_key_results_actions(h, options.entities, m_id='PMT_01')
 
         self.report.set_xy(273, h + 0.5)
         self.report.image(options.images[LEGEND], x=None, y=None, w=139, h=59, type='', link='')
 
-    def __compose_measure_summary(self, h, entities):
-        e_cpm = [e for e in entities if isinstance(e, CpmEntity)]
+    def __compose_measure_summary(self, h, entities, is_cpm=True):
+        if is_cpm:
+            e_sorted = [e for e in entities if isinstance(e, CpmEntity)]
+        else:
+            e_sorted = [e for e in entities if isinstance(e, SdmEntity) or isinstance(e, SsgEntity)]
+
         h += 1
         self.report.set_xy(9, h)
         self.report.set_font(REPORT_FONT, 'B', 6)
         self.report.cell(35, 6, '{}:'.format(rt.TOTAL_MEASURES), align='L')
-        n_cpm = len(e_cpm)
-        self.report.cell(20, 6, '{}'.format(n_cpm), align='L')
+        n_sorted = len(e_sorted)
+        self.report.cell(20, 6, '{}'.format(n_sorted), align='L')
 
-        b_cpm = sort_entities_by_performance(e_cpm, PERF_BLUE)
-        exc = [x.measure_cfy.m_id for x in b_cpm]
-        g_cpm = sort_entities_by_performance(e_cpm, PERF_GREEN, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in g_cpm]
-        r_cpm = sort_entities_by_performance(e_cpm, PERF_RED, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in r_cpm]
-        a_cpm = sort_entities_by_performance(e_cpm, PERF_AMBER, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in a_cpm]
-        nyd_cpm = sort_entities_by_performance(e_cpm, PERF_NYD, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in nyd_cpm]
-        pr_cpm = sort_entities_by_performance(e_cpm, PERF_PREV_REPORTED, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in pr_cpm]
-        aw_cpm = sort_entities_by_performance(e_cpm, PERF_AWAITING, exclusions=exc)
-        exc = exc + [x.measure_cfy.m_id for x in aw_cpm]
-        t_cpm = sort_entities_by_performance(e_cpm, PERF_TREND, exclusions=exc)
+        b_sorted = sort_entities_by_performance(e_sorted, PERF_BLUE)
+        exc = [x.measure_cfy.m_id for x in b_sorted]
+        g_sorted = sort_entities_by_performance(e_sorted, PERF_GREEN, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in g_sorted]
+        r_sorted = sort_entities_by_performance(e_sorted, PERF_RED, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in r_sorted]
+        a_sorted = sort_entities_by_performance(e_sorted, PERF_AMBER, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in a_sorted]
+        nyd_sorted = sort_entities_by_performance(e_sorted, PERF_NYD, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in nyd_sorted]
+        pr_sorted = sort_entities_by_performance(e_sorted, PERF_PREV_REPORTED, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in pr_sorted]
+        aw_sorted = sort_entities_by_performance(e_sorted, PERF_AWAITING, exclusions=exc)
+        exc = exc + [x.measure_cfy.m_id for x in aw_sorted]
+        t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, exclusions=exc)
         h += 3
         self.report.set_xy(15, h)
         self.report.cell(35, 6, '{}:'.format(rt.AVAILABLE_TO_REPORT), align='L')
-        m_sum = len(b_cpm) + len(g_cpm) + len(r_cpm) + len(a_cpm) + len(t_cpm)
-        self.report.cell(50, 6, rt.INCLUDING_TREND_OR_PROJECT_UPDATE_MEASURES.format(m_sum, len(t_cpm)), align='L')
+        m_sum = len(b_sorted) + len(g_sorted) + len(r_sorted) + len(a_sorted) + len(t_sorted)
+        self.report.cell(50, 6, rt.INCLUDING_TREND_OR_PROJECT_UPDATE_MEASURES.format(m_sum, len(t_sorted)), align='L')
 
         h += 6
         self.report.set_xy(7.5, h)
@@ -126,7 +114,10 @@ class PDFReporter(RGReporterBase):
         self.report.multi_cell(16, h=2.5, txt=rt.GROW_UP, align='C')
         self.report.multi_cell(16, h=2.5, txt=rt.AGE_WELL, align='C')
         self.report.multi_cell(16, h=2.5, txt=rt.LIVE_IN, align='C')
-        self.report.multi_cell(16, h=2.5, txt=rt.CWG, align='C')
+        if is_cpm:
+            self.report.multi_cell(16, h=2.5, txt=rt.CWG, align='C')
+        else:
+            self.report.multi_cell(16, h=2.5, txt=rt.SSG, align='C')
         self.report.multi_cell(16, h=2.5, txt=rt.TOTAL, align='C')
 
         h += 6
@@ -141,24 +132,31 @@ class PDFReporter(RGReporterBase):
             self.report.set_xy(7.5, h)
 
             if i == 0:
-                self.__compose_measure_summary_row(rt.BLUE, b_cpm, get_color(BLUE))
+                self.__compose_measure_summary_row(rt.BLUE, remove_entities_with_no_outcome(b_sorted),
+                                                   color=get_color(BLUE), is_cpm=is_cpm)
             elif i == 1:
-                self.__compose_measure_summary_row(rt.GREEN, g_cpm, get_color(GREEN))
+                self.__compose_measure_summary_row(rt.GREEN, remove_entities_with_no_outcome(g_sorted),
+                                                   color=get_color(GREEN), is_cpm=is_cpm)
             elif i == 2:
-                self.__compose_measure_summary_row(rt.AMBER, a_cpm, get_color(AMBER))
+                self.__compose_measure_summary_row(rt.AMBER, remove_entities_with_no_outcome(a_sorted),
+                                                   color=get_color(AMBER), is_cpm=is_cpm)
             elif i == 3:
-                self.__compose_measure_summary_row(rt.RED, r_cpm, get_color(RED))
+                self.__compose_measure_summary_row(rt.RED, remove_entities_with_no_outcome(r_sorted),
+                                                   color=get_color(RED), is_cpm=is_cpm)
             elif i == 4:
-                self.__compose_measure_summary_row(rt.TREND, t_cpm, get_color(GREY))
+                self.__compose_measure_summary_row(rt.TREND, remove_entities_with_no_outcome(t_sorted),
+                                                   color=get_color(GREY), is_cpm=is_cpm)
             elif i == 5:
-                self.__compose_measure_summary_row(rt.NYD, nyd_cpm)
+                self.__compose_measure_summary_row(rt.NYD, remove_entities_with_no_outcome(nyd_sorted), is_cpm=is_cpm)
             elif i == 6:
-                self.__compose_measure_summary_row(rt.AWAITING, aw_cpm)
+                self.__compose_measure_summary_row(rt.AWAITING, remove_entities_with_no_outcome(aw_sorted),
+                                                   is_cpm=is_cpm)
             elif i == 7:
-                self.__compose_measure_summary_row(rt.PREVIOUSLY_REPORTED, pr_cpm)
+                self.__compose_measure_summary_row(rt.PREVIOUSLY_REPORTED, remove_entities_with_no_outcome(pr_sorted),
+                                                   is_cpm=is_cpm)
             h += 5
 
-    def __compose_measure_summary_row(self, txt='', entities=(), color=get_color(BLACK)):
+    def __compose_measure_summary_row(self, txt='', entities=(), color=get_color(BLACK), is_cpm=True):
         self.report.set_text_color(color.r, color.g, color.b)
         if txt == rt.PREVIOUSLY_REPORTED:
             self.report.multi_cell(16, h=3, txt=txt, align='L')
@@ -166,19 +164,24 @@ class PDFReporter(RGReporterBase):
             self.report.multi_cell(16, h=5, txt=txt, align='L')
         color = get_color(BLACK)
         self.report.set_text_color(color.r, color.g, color.b)
-        self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_LEAN_WORK_INVEST))), align='C')
+        self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_LEAN_WORK_INVEST))),
+                         align='C')
         self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_GROW_UP))), align='C')
         self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_AGE_WELL))), align='C')
         self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_LIVE_IN))), align='C')
-        self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_CWG))), align='C')
+        if is_cpm:
+            self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_CWG))), align='C')
+        else:
+            self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_SSG))), align='C')
+
         self.report.cell(16, h=6, txt='{}'.format(len(entities)), align='C')
 
-    def __compose_key_results_actions(self, h, entities):
+    def __compose_key_results_actions(self, h, entities, m_id=None):
         h += 2
         for entity in entities:
             if not isinstance(entity, UnknownEntity):
                 continue
-            if entity.data_cfy[0].m_id == 'PMT_01':
+            if entity.data_cfy[0].m_id == m_id:
                 comment = ''
                 for d in entity.data_cfy:
                     if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
@@ -192,7 +195,7 @@ class PDFReporter(RGReporterBase):
                 self.report.multi_cell(150, h=2.5, txt=comment, align='J')
                 break
 
-    def do_compose_grid_charts(self, entities=None, exclusions=None):
+    def __do_compose_grid_charts(self, entities=None, exclusions=None):
         graphs = 0
         coords = list(self.left_top)
 
@@ -204,12 +207,11 @@ class PDFReporter(RGReporterBase):
             if exclusions is not None and entity.measure_cfy.m_id in exclusions:
                 logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
                 continue
-            graphs += 1
             # check if coords are equal to initial left-top
             # then create new page
-            if coords[0] == self.left_top[0] and coords[1] == self.left_top[1]:
+            if graphs == 0:
                 self.report.add_page()
-
+            graphs += 1
             # create chart
             self.__compose_visuals_for_entity(entity, coords)
 
@@ -225,11 +227,59 @@ class PDFReporter(RGReporterBase):
                 self.__set_grid(n_cells=graphs)
                 coords = list(self.left_top)
                 graphs = 0
-        self.__set_grid(n_cells=graphs)
+                self.__create_scorecard_top(x=self.left_top[0], h=self.left_top[1] - 8.5, add_second=False,
+                                            w=self.graph_size[0] * self.grid_size[1])
+        if graphs > 0:
+            self.__create_scorecard_top(x=self.left_top[0], h=self.left_top[1] - 8.5, add_second=False,
+                                        w=self.graph_size[0] * self.grid_size[1])
+            self.__reset_colors()
+            self.__set_grid(n_cells=graphs)
 
-    def do_export(self, out_dir=None):
-        self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
-                           dest='F')
+    def __reset_colors(self):
+        color = get_color(WHITE)
+        self.report.set_fill_color(color.r, color.g, color.b)
+        color = get_color(BLACK)
+        self.report.set_text_color(color.r, color.g, color.b)
+
+    def __create_scorecard_top(self, add_page=False, h=98.0, add_second=True, w=405, x=7.5):
+        if add_page:
+            self.report.add_page()
+        self.report.set_xy(x, h)
+        self.report.set_font(REPORT_FONT, '', 6)
+        color = get_color(DARK_BLUE)
+        self.report.set_fill_color(color.r, color.g, color.b)
+        color = get_color(WHITE)
+        self.report.set_text_color(color.r, color.g, color.b)
+        self.report.set_font(REPORT_FONT, 'B', 8)
+
+        # TODO get month and FY
+        self.report.cell(w, h=8.5, txt=rt.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
+        h += 8.5
+
+        if add_second:
+            self.report.set_xy(7.5, h)
+            color = get_color(AQUA)
+            self.report.set_fill_color(color.r, color.g, color.b)
+            color = get_color(WHITE)
+            self.report.set_text_color(color.r, color.g, color.b)
+
+        return h
+
+    def __do_compose_ssg_sdm_scorecard(self, options):
+        h = self.__create_scorecard_top(add_page=True)
+
+        self.report.cell(112, h=8.5, txt=rt.SUMMARY, fill=1, align='C', border=1)
+        self.report.cell(293, h=8.5, txt=rt.KEY_RESULTS_SERVICE_DELIVERY_MEASURES, fill=1, align='C', border=1)
+
+        self.__reset_colors()
+
+        h += 8.5
+        self.report.set_xy(7.5, h)
+        self.report.cell(112, h=60, border=1)
+        self.report.cell(293, h=60, border=1)
+
+        self.__compose_measure_summary(h, options.entities, is_cpm=False)
+        self.__compose_key_results_actions(h, options.entities, m_id='PMT_02')
 
     def __set_grid(self, n_cells=0):
         if n_cells == 0:
@@ -262,6 +312,7 @@ class PDFReporter(RGReporterBase):
             self.report.set_font(REPORT_FONT, '', size)
 
     def __compose_visuals_for_entity(self, entity, left_top):
+        self.__reset_colors()
         self.report.set_xy(left_top[0], left_top[1])
         d_format = entity.measure_cfy.data_format
         frequency = entity.measure_cfy.frequency.upper()
@@ -470,8 +521,6 @@ class PDFReporter(RGReporterBase):
 
     @staticmethod
     def __get_ticks_and_target(freq, data_list):
-        x_ticks, x_ticks_lbl, y_target = None, None, None
-
         if freq == FREQ_ANNUAL:
             x_ticks = sorted(set([try_parse(x.year, is_int=True) for x in data_list]))
             x_ticks_lbl = sorted(set([x.f_year for x in data_list]))

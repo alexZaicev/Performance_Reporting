@@ -6,7 +6,7 @@ from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
 import report_text as rt
-from models import RGReporterBase, CpmEntity, UnknownEntity, SsgEntity, SdmEntity
+from models import RGReporterBase, CpmEntity, UnknownEntity, SdmEntity
 from utils import *
 
 
@@ -44,9 +44,176 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        self.__do_compose_cpm_scorecard(options)
-        self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
-        self.__do_compose_ssg_sdm_scorecard(options)
+        # self.__do_compose_cpm_scorecard(options)
+        # self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
+        # self.__do_compose_sdm_scorecard(options)
+
+        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
+        self.report.cell(330, h=8.5, txt=rt.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
+        self.report.cell(75, h=8.5, txt=rt.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        self.__do_compose_school_table(h, options)
+        h = self.__do_compose_financial_charts(h, options)
+
+        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        self.report.cell(405, h=8.5, txt=rt.HUMAN_RESOURCES_WORKFORCE, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        h = self.__do_compose_hr_workforce(h, options)
+
+        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        self.report.cell(220, h=8.5, txt=rt.HEALTH_AND_SAFETY, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=rt.TRAINING_AND_DEVELOPMENT, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        h = self.__do_compose_health_and_safety(h, options)
+
+        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        self.report.cell(220, h=8.5, txt=rt.WORKFORCE_EXPENDITURE, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        h = self.__do_compose_workforce(h, options)
+
+    def __do_compose_health_and_safety(self, h, options):
+        graph_size = (220, 53)
+        self.report.set_xy(7.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        return h + graph_size[1]
+
+    def __do_compose_workforce(self, h, options):
+        graph_size = (220, 30)
+        self.report.set_xy(7.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        self.report.image(options.images[WORKFORCE_EXPENDITURE], x=8, y=h + 0.5, w=graph_size[0] - 1,
+                          h=graph_size[1] - 1)
+        return h + graph_size[1]
+
+    def __do_compose_school_table(self, h, options):
+        graph_size = (75, 83)
+        self.report.set_xy(337.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+
+    def __do_compose_hr_workforce(self, h, options):
+        graph_size = (405, 83)
+        self.report.set_xy(7.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        return h + graph_size[1]
+
+    def __do_compose_financial_charts(self, h, options):
+        graph_size = (110, 83)
+        m_ids = ['9_08', '9_09', '9_10']
+        titles = [rt.COLLECTION_OF_COUNCIL_TAX_IN_YEAR, rt.COLLECTION_OF_BUSINESS_RATES_IN_YEAR,
+                  rt.COUNCIL_TAX_PAID_BY_DIRECT_DEBIT]
+        for m_id in m_ids:
+            x = 7.5 + (graph_size[0] * m_ids.index(m_id))
+
+            entity = get_entity_by_m_id(options.entities, m_id)
+
+            self.report.set_xy(x, h)
+            self.report.cell(graph_size[0], h=graph_size[1], border=1)
+            self.report.set_xy(x + 0.5, h + 0.5)
+            self.__compose_financial_chart(h, entity, titles[m_ids.index(m_id)], m_id)
+
+            self.report.set_xy(x + 2.5, h + graph_size[1] / 2 - 5)
+            self.__compose_report_comment(entity.data(), w=graph_size[0] - 5)
+
+            self.__compose_financial_table(entity, x=x+graph_size[0]/2+17, y=h+3)
+
+        return h + graph_size[1]
+
+    def __compose_financial_table(self, entity, x, y):
+        self.report.set_xy(x, y)
+        frequency = self.__get_freq(entity.measure_cfy.frequency.upper())
+        d_format = entity.measure_cfy.data_format
+
+        data_current_pos_list = get_current_pos(entity.data())
+        if len(data_current_pos_list) == 0:
+            dot, result, target = '', '', ''
+            baseline = NOT_APPLICABLE
+        else:
+            recent_data = data_current_pos_list[len(data_current_pos_list) - 1]
+            if FREQ_ANNUAL in frequency:
+                dot = format_value(recent_data.dotFromSamePeriodLastYear)
+            elif FREQ_QUARTER in frequency:
+                dot = format_value(recent_data.dotFromPreviousQuarter)
+            else:
+                dot = format_value(recent_data.dotFromPreviousMonth)
+            result = format_value(recent_data.result, d_format)
+            target = format_value(recent_data.target, d_format)
+            baseline = format_value(entity.get_measure(recent_data).baseline, d_format)
+
+        text_dot = " "
+        if ~(dot in ["p", "q", "r", "s", "u"]):
+            text_dot = dot
+
+        self.__set_font(is_bold=True, size=5)
+        self.report.cell(14, 6, rt.DOT, border='L', ln=0, align='C')
+        self.__set_font(is_bold=False, size=5)
+        self.report.cell(15, 6, text_dot, border='R', ln=2, align='C')
+        self.report.cell(-14)
+
+        self.__set_font(is_bold=True, size=5)
+        self.report.cell(14, 6, rt.ACTUAL, border='L', ln=0, align='C')
+        self.__set_font(is_bold=False, size=5)
+        self.report.cell(15, 6, result, border='R', ln=2, align='C')
+        self.report.cell(-14)
+
+        self.__set_font(is_bold=True, size=5)
+        self.report.cell(14, 6, rt.TARGET, border='L', ln=0, align='C')
+        self.__set_font(is_bold=False, size=5)
+        self.report.multi_cell(15, 3, '{} ({})'.format(target, rt.IN_YEAR_FORECAST), border='R', ln=2, align='C')
+        self.report.cell(-14)
+
+        self.__set_font(is_bold=True, size=5)
+        self.report.cell(14, 6, rt.BASELINE, border='L', ln=0, align='C')
+        self.__set_font(is_bold=False, size=5)
+        self.report.cell(15, 6, baseline, border='R', ln=2, align='C')
+        self.report.cell(-14)
+
+    def __compose_financial_chart(self, h, entity, title, m_id):
+        fig, ax = plt.subplots(figsize=(7, 3))
+        plt.title(title, fontsize=16, wrap=True)
+
+        x_freq = self.__get_freq(entity.measure_cfy.frequency.upper())
+        x_ticks, x_ticks_lbl, y_target = self.__get_ticks_and_target(x_freq, entity.data())
+        y_target = [try_parse('{:.2f}'.format(x * 100), is_float=True) for x in y_target]
+        ax.plot(x_ticks, y_target, "k--", color='darkblue', zorder=4)
+
+        results = get_results_per_given_frequency(entity.data(), x_freq, x_ticks)
+        results = [try_parse('{:.2f}'.format(x * 100), is_float=True) for x in results]
+        performance = get_performance_per_given_frequency(entity.data(), x_freq, x_ticks)
+
+        blue_data = sort_results_and_months_by_performance(results, x_ticks, performance, BLUE)
+        green_data = sort_results_and_months_by_performance(results, x_ticks, performance, GREEN)
+        amber_data = sort_results_and_months_by_performance(results, x_ticks, performance, AMBER)
+        red_data = sort_results_and_months_by_performance(results, x_ticks, performance, RED)
+        grey_data = sort_results_and_months_by_performance(results, x_ticks, performance, GREY)
+        brag_grey_data = sort_results_and_months_by_performance(results, x_ticks, performance, None)
+
+        self.__create_bar(ax, blue_data, get_color(BLUE))
+        self.__create_bar(ax, green_data, get_color(GREEN))
+        self.__create_bar(ax, amber_data, get_color(AMBER))
+        self.__create_bar(ax, red_data, get_color(RED))
+        self.__create_bar(ax, grey_data, get_color(GREY))
+        self.__create_bar(ax, brag_grey_data, get_color(GREY))
+
+        ax.set_ylim(0, 100)
+        ax.set_yticklabels(['{}%'.format(x) for x in ax.get_yticks()])
+        ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
+
+        ax.set_xticks(x_ticks)
+        new_lbl = []
+        for x in x_ticks_lbl:
+            if (x_ticks_lbl.index(x) + 1) % 2 != 0:
+                new_lbl.append(x)
+            else:
+                new_lbl.append('')
+        ax.set_xticklabels(new_lbl, rotation=45, ha='right')
+
+        f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(m_id))
+        plt.savefig(f_path)
+        self.report.image(f_path, x=None, y=None, w=69, h=0, type='', link='')
 
     def __do_compose_cpm_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True)
@@ -73,7 +240,7 @@ class PDFReporter(RGReporterBase):
         if is_cpm:
             e_sorted = [e for e in entities if isinstance(e, CpmEntity)]
         else:
-            e_sorted = [e for e in entities if isinstance(e, SdmEntity) or isinstance(e, SsgEntity)]
+            e_sorted = [e for e in entities if isinstance(e, SdmEntity)]
 
         h += 1
         self.report.set_xy(9, h)
@@ -241,20 +408,19 @@ class PDFReporter(RGReporterBase):
         color = get_color(BLACK)
         self.report.set_text_color(color.r, color.g, color.b)
 
-    def __create_scorecard_top(self, add_page=False, h=98.0, add_second=True, w=405, x=7.5):
+    def __create_scorecard_top(self, add_page=False, h=98.0, add_first=True, add_second=True, w=405, x=7.5):
+        self.report.set_font(REPORT_FONT, 'B', 8)
         if add_page:
             self.report.add_page()
-        self.report.set_xy(x, h)
-        self.report.set_font(REPORT_FONT, '', 6)
-        color = get_color(DARK_BLUE)
-        self.report.set_fill_color(color.r, color.g, color.b)
-        color = get_color(WHITE)
-        self.report.set_text_color(color.r, color.g, color.b)
-        self.report.set_font(REPORT_FONT, 'B', 8)
-
-        # TODO get month and FY
-        self.report.cell(w, h=8.5, txt=rt.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
-        h += 8.5
+        if add_first:
+            self.report.set_xy(x, h)
+            color = get_color(DARK_BLUE)
+            self.report.set_fill_color(color.r, color.g, color.b)
+            color = get_color(WHITE)
+            self.report.set_text_color(color.r, color.g, color.b)
+            # TODO get month and FY
+            self.report.cell(w, h=8.5, txt=rt.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
+            h += 8.5
 
         if add_second:
             self.report.set_xy(7.5, h)
@@ -265,7 +431,7 @@ class PDFReporter(RGReporterBase):
 
         return h
 
-    def __do_compose_ssg_sdm_scorecard(self, options):
+    def __do_compose_sdm_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True)
 
         self.report.cell(112, h=8.5, txt=rt.SUMMARY, fill=1, align='C', border=1)
@@ -332,9 +498,10 @@ class PDFReporter(RGReporterBase):
         self.__add_empty_line()
         self.__compose_gauge_chart(entity.data())
 
-    def __compose_report_comment(self, data_list):
+    def __compose_report_comment(self, data_list, w=93):
         r_comment = get_report_comment(data_list)
-        self.report.multi_cell(93, 2.5, r_comment, 0, 'J')
+        self.report.set_font(REPORT_FONT, '', 5.5)
+        self.report.multi_cell(w, 2.5, r_comment, 0, 'J')
 
     def __compose_benchmark_tbl(self, data_list, d_format):
         data_with_bmk_list = get_bmk(data_list)
@@ -494,20 +661,12 @@ class PDFReporter(RGReporterBase):
         if len(x_ticks) == 1:
             ax.set_xlim(int(x_ticks[0]) - 1, int(x_ticks[0]) + 1)
 
-        b_width = 0.6
-
-        if len(blue_data[0]) > 0:
-            ax.bar(blue_data[0], blue_data[1], color=str(get_color(BLUE)), width=b_width, align='center')
-        if len(green_data[0]) > 0:
-            ax.bar(green_data[0], green_data[1], color=str(get_color(GREEN)), width=b_width, align='center')
-        if len(amber_data[0]) > 0:
-            ax.bar(amber_data[0], amber_data[1], color=str(get_color(AMBER)), width=b_width, align='center')
-        if len(red_data[0]) > 0:
-            ax.bar(red_data[0], red_data[1], color=str(get_color(RED)), width=b_width, align='center')
-        if len(grey_data[0]) > 0:
-            ax.bar(grey_data[0], grey_data[1], color=str(get_color(GREY)), width=b_width, align='center')
-        if len(brag_grey_data[0]) > 0:
-            ax.bar(brag_grey_data[0], brag_grey_data[1], color=str(get_color(GREY)), width=b_width, align='center')
+        self.__create_bar(ax, blue_data, get_color(BLUE))
+        self.__create_bar(ax, green_data, get_color(GREEN))
+        self.__create_bar(ax, amber_data, get_color(AMBER))
+        self.__create_bar(ax, red_data, get_color(RED))
+        self.__create_bar(ax, grey_data, get_color(GREY))
+        self.__create_bar(ax, brag_grey_data, get_color(GREY))
 
         ax.set_xticks(x_ticks)
         if x_freq == FREQ_MONTHLY:
@@ -518,6 +677,11 @@ class PDFReporter(RGReporterBase):
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(measure.m_id))
         plt.savefig(f_path)
         self.report.image(f_path, x=None, y=None, w=94, h=0, type='', link='')
+
+    @staticmethod
+    def __create_bar(ax, data, color, width=0.6):
+        if len(data[0]) > 0:
+            ax.bar(data[0], data[1], color=str(color), width=width, align='center')
 
     @staticmethod
     def __get_ticks_and_target(freq, data_list):

@@ -321,3 +321,13 @@ def remove_entities_with_no_outcome(entities):
             if e.measure_cfy.outcome is not None and len(e.measure_cfy.outcome) > 0:
                 result.append(e)
     return result
+
+
+def get_entity_by_m_id(entities, m_id):
+    if entities is None and m_id is None:
+        return None
+    for e in entities:
+        if e.measure_cfy.m_id == m_id and e.measure_lfy.m_id == m_id:
+            return e
+    return None
+

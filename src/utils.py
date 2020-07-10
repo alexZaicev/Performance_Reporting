@@ -92,12 +92,13 @@ def get_lfy_prefix():
 
 def parse_columns(column):
     val = str(column).upper().replace('\n', ' ').replace('\r', ' ').replace('\\', ' ').replace('/', ' ').replace(
-        '-', ' ').replace('(', ' ').replace(')', ' ')
+        '-', ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ')
     val = re.sub(' +', '_', val)
     if val.endswith('_'):
         val = val[:-1]
     if val.startswith('_'):
         val = val[1:]
+    val = val.replace('&', 'AND')
     return val
 
 

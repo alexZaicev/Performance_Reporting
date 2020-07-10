@@ -76,25 +76,52 @@ class HrScorecardData(HrDataModel):
 
     def __init__(self, m_type=HR_SCORECARD, df=None):
         HrDataModel.__init__(self, m_type=m_type, df=df)
+        self.adultSocialCare = get_val(df, ADULTS_SOCIAL_CARE)
+        self.educationAndSkills = get_val(df, EDUCATION_AND_SKILLS)
+        self.inclusiveGrowth = get_val(df, INCLUSIVE_GROWTH)
+        self.financeAndGovernance = get_val(df, FINANCE_AND_GOVERNANCE)
+        self.neighbourhoods = get_val(df, NEIGHBOURHOODS)
+        self.partnershipsInsightAndPrevention = get_val(df, PARTNERSHIPS_INSIGHT_AND_PREVENTION)
+        self.digitalAndCustomerServices = get_val(df, DIGITAL_AND_CUSTOMER_SERVICES)
+        self.hrAndOrganizationDevelopment = get_val(df, HR_AND_ORGANISATION_DEVELOPMENT)
+        self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL)
 
 
 class HrAbsencesData(HrDataModel):
 
     def __init__(self, m_type=HR_ABSENCES, df=None):
         HrDataModel.__init__(self, m_type=m_type, df=df)
+        self.adultSocialCare = get_val(df, ADULTS_SOCIAL_CARE)
+        self.educationAndSkills = get_val(df, EDUCATION_AND_SKILLS)
+        self.inclusiveGrowth = get_val(df, INCLUSIVE_GROWTH)
+        self.financeAndGovernance = get_val(df, FINANCE_AND_GOVERNANCE)
+        self.neighbourhoods = get_val(df, NEIGHBOURHOODS)
+        self.partnershipsInsightAndPrevention = get_val(df, PARTNERSHIPS_INSIGHT_AND_PREVENTION)
+        self.digitalAndCustomerServices = get_val(df, DIGITAL_AND_CUSTOMER_SERVICES)
+        self.hrAndOrganizationDevelopment = get_val(df, HR_AND_ORGANISATION_DEVELOPMENT)
+        self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL)
+        self.commonwealthGames = get_val(df, COMMONWEALTH_GAMES)
 
 
 class HrSicknessData(HrDataModel):
 
     def __init__(self, m_type=HR_SICKNESS, df=None):
         HrDataModel.__init__(self, m_type=m_type, df=df)
+        self.total = get_val(df, TOTAL)
+        self.percentage = get_val(df, PERCENTAGE)
 
 
 class HrTrainingData(HrDataModel):
 
     def __init__(self, m_type=HR_TRAINING, df=None):
         HrDataModel.__init__(self, m_type=m_type, df=df)
-
-
-
-
+        self.adultSocialCare = get_val(df, ADULTS_SOCIAL_CARE)
+        self.educationAndSkills = get_val(df, EDUCATION_AND_SKILLS)
+        self.inclusiveGrowth = get_val(df, INCLUSIVE_GROWTH)
+        self.financeAndGovernance = get_val(df, FINANCE_AND_GOVERNANCE)
+        self.neighbourhoods = get_val(df, NEIGHBOURHOODS)
+        self.partnershipsInsightAndPrevention = get_val(df, PARTNERSHIPS_INSIGHT_AND_PREVENTION)
+        self.digitalAndCustomerServices = get_val(df, DIGITAL_AND_CUSTOMER_SERVICES)
+        self.hrAndOrganizationDevelopment = get_val(df, HR_AND_ORGANISATION_DEVELOPMENT)
+        self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL)
+        self.dateOfData = get_val(df, DATE_OF_DATA)

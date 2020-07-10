@@ -47,7 +47,85 @@ class PDFReporter(RGReporterBase):
         # self.__do_compose_cpm_scorecard(options)
         # self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
         # self.__do_compose_sdm_scorecard(options)
+        # self.__do_compose_financial_hr_scorecard(options)
+        self.__do_compose_relationship_effectiveness_scorecard(options)
 
+    def __do_compose_relationship_effectiveness_scorecard(self, options):
+        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
+        self.report.cell(220, h=8.5, txt=rt.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=rt.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        h1 = self.__do_compose_effectiveness_and_compliance(7.5 + 220, h, options)
+        h = self.__do_compose_customer_relationships(h, options)
+
+        h1 = self.__create_scorecard_top(add_first=False, h=h1)
+        self.report.set_xy(220 + 7.5, h1)
+        self.report.cell(185, h=8.5, txt=rt.DECISION_PLANNING_CABINET, fill=1, align='C', border=1)
+        h1 += 8.5
+        self.__reset_colors()
+        self.__do_compose_decision_planning_cabinet(220 + 7.5, h1, options)
+
+        h = self.__create_scorecard_top(add_first=False, h=h)
+        self.report.cell(220, h=8.5, txt=rt.CORPORATE_RISKS, fill=1, align='C', border=1)
+        h += 8.5
+        self.__reset_colors()
+        self.__do_compose_corporate_risks(h, options)
+
+    def __do_compose_decision_planning_cabinet(self, x, h, options):
+        graph_size = (185, 52)
+        self.__set_font()
+        self.report.set_xy(x, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        entity = get_entity_by_m_id(options.entities, 'PMT_03', has_measure=False)
+        column_1, column_2 = '', ''
+        for d in entity.data_cfy:
+            if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
+                column_1 = d.measureTextColumn1
+        if len(column_1) == 0:
+            for d in entity.data_lfy:
+                if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
+                    column_1 = d.measureTextColumn1
+
+        for d in entity.data_cfy:
+            if d.measureTextColumn2 is not None and len(d.measureTextColumn2) > 0:
+                column_2 = d.measureTextColumn2
+        if len(column_2) == 0:
+            for d in entity.data_lfy:
+                if d.measureTextColumn2 is not None and len(d.measureTextColumn2) > 0:
+                    column_2 = d.measureTextColumn2
+
+        self.report.set_xy(x + 1, h + 1)
+        self.report.multi_cell(graph_size[0] / 2 - 2, h=2.5, txt=column_1, align='J')
+
+        self.report.set_xy(x + graph_size[0] / 2, h)
+        self.report.cell(graph_size[0] / 2, h=graph_size[1], border='L')
+
+        self.report.set_xy(x + 1 + graph_size[0] / 2 + 4, h + 1)
+        self.report.multi_cell(graph_size[0] / 2 - 2, h=2.5, txt=column_2, align='J')
+
+    def __do_compose_effectiveness_and_compliance(self, x, h, options):
+        graph_size = (185, 214)
+        self.report.set_xy(x, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        self.report.image(options.images[OFSTED], x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1, h=0)
+        return h + graph_size[1]
+
+    def __do_compose_corporate_risks(self, h, options):
+        graph_size = (220, 183)
+        self.report.set_xy(7.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        self.report.image(options.images[RISK_MAP], x=8, y=h + 0.5, w=graph_size[0] - 1,
+                          h=graph_size[1] - 1)
+        return h + graph_size[1]
+
+    def __do_compose_customer_relationships(self, h, options):
+        graph_size = (220, 83)
+        self.report.set_xy(7.5, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        return h + graph_size[1]
+
+    def __do_compose_financial_hr_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
         self.report.cell(330, h=8.5, txt=rt.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
         self.report.cell(75, h=8.5, txt=rt.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
@@ -56,20 +134,20 @@ class PDFReporter(RGReporterBase):
         self.__do_compose_school_table(h, options)
         h = self.__do_compose_financial_charts(h, options)
 
-        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        h = self.__create_scorecard_top(add_first=False, h=h)
         self.report.cell(405, h=8.5, txt=rt.HUMAN_RESOURCES_WORKFORCE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h = self.__do_compose_hr_workforce(h, options)
 
-        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        h = self.__create_scorecard_top(add_first=False, h=h)
         self.report.cell(220, h=8.5, txt=rt.HEALTH_AND_SAFETY, fill=1, align='C', border=1)
         self.report.cell(185, h=8.5, txt=rt.TRAINING_AND_DEVELOPMENT, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h = self.__do_compose_health_and_safety(h, options)
 
-        h = self.__create_scorecard_top(add_first=False, h=h, w=405)
+        h = self.__create_scorecard_top(add_first=False, h=h)
         self.report.cell(220, h=8.5, txt=rt.WORKFORCE_EXPENDITURE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
@@ -118,7 +196,7 @@ class PDFReporter(RGReporterBase):
             self.report.set_xy(x + 2.5, h + graph_size[1] / 2 - 5)
             self.__compose_report_comment(entity.data(), w=graph_size[0] - 5)
 
-            self.__compose_financial_table(entity, x=x+graph_size[0]/2+17, y=h+3)
+            self.__compose_financial_table(entity, x=x + graph_size[0] / 2 + 17, y=h + 3)
 
         return h + graph_size[1]
 

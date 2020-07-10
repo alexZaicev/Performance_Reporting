@@ -323,11 +323,13 @@ def remove_entities_with_no_outcome(entities):
     return result
 
 
-def get_entity_by_m_id(entities, m_id):
+def get_entity_by_m_id(entities, m_id, has_measure=True):
     if entities is None and m_id is None:
         return None
     for e in entities:
-        if e.measure_cfy.m_id == m_id and e.measure_lfy.m_id == m_id:
+        if has_measure and e.measure_cfy.m_id == m_id and e.measure_lfy.m_id == m_id:
+            return e
+        elif not has_measure and e.data_cfy[0].m_id == m_id and e.data_cfy[1].m_id == m_id:
             return e
     return None
 

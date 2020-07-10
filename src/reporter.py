@@ -44,10 +44,10 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        # self.__do_compose_cpm_scorecard(options)
-        # self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
-        # self.__do_compose_sdm_scorecard(options)
-        # self.__do_compose_financial_hr_scorecard(options)
+        self.__do_compose_cpm_scorecard(options)
+        self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
+        self.__do_compose_sdm_scorecard(options)
+        self.__do_compose_financial_hr_scorecard(options)
         self.__do_compose_relationship_effectiveness_scorecard(options)
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
@@ -74,7 +74,7 @@ class PDFReporter(RGReporterBase):
 
     def __do_compose_decision_planning_cabinet(self, x, h, options):
         graph_size = (185, 52)
-        self.__set_font()
+        self.__set_font(size=6)
         self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
         entity = get_entity_by_m_id(options.entities, 'PMT_03', has_measure=False)

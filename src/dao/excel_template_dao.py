@@ -45,9 +45,17 @@ class ExcelTemplateDao(RGDaoBase):
         return self.__entities
 
     def get_data_frames(self):
+        # DEFINE DATA FRAME
         df_cym = pd.DataFrame()
         df_cyd = pd.DataFrame()
-        df_unknown = pd.DataFrame()
+        # used by PMT template
+        df_pmt = pd.DataFrame()
+        # used by HR template
+        df_hr_scorecard = pd.DataFrame()
+        df_hr_absences = pd.DataFrame()
+        df_hr_sickness = pd.DataFrame()
+        df_hr_training = pd.DataFrame()
+
         templates = self.__validate_and_clean_templates(self.get_templates())
         for name in templates.keys():
             logging.debug('Reading [{}] templates....'.format(name))
@@ -70,15 +78,57 @@ class ExcelTemplateDao(RGDaoBase):
                     df_cyd.loc[:, YEAR_QUARTER] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "").str.cat(
                         df_cyd.loc[:, QUARTER].str[1:2])
                     df_cyd.loc[:, YEAR] = df_cyd.loc[:, FISCAL_YEAR].str.replace("-", "")
+
+                    # parse HR data
+                    try:
+                        dict_template = pd.read_excel(template,
+                                                      sheet_name=[HR_SCORECARD_DATA, HR_ABSENCES_DATA, HR_SICKNESS_DATA,
+                                                                  HR_TRAINING_DATA],
+                                                      encoding='utf-8')
+                        temp = dict_template[HR_SCORECARD_DATA]
+                        temp.columns = map(parse_columns, temp.columns)
+                        df_hr_scorecard = df_hr_scorecard.append(temp)
+
+                        temp = dict_template[HR_ABSENCES_DATA]
+                        temp.columns = map(parse_columns, temp.columns)
+                        df_hr_absences = df_hr_absences.append(temp)
+
+                        temp = dict_template[HR_SICKNESS_DATA]
+                        temp.columns = map(parse_columns, temp.columns)
+                        df_hr_sickness = df_hr_sickness.append(temp)
+
+                        temp = dict_template[HR_TRAINING_DATA]
+                        temp.columns = map(parse_columns, temp.columns)
+                        df_hr_training = df_hr_training.append(temp)
+
+                        df_hr_scorecard.loc[:, YEAR] = df_hr_scorecard.loc[:, FISCAL_YEAR].str.replace("-", "")
+                        df_hr_scorecard.loc[:, YEAR_MONTH] = df_hr_scorecard.loc[:, FISCAL_YEAR].str.replace("-", "") \
+                            .str.cat(df_hr_scorecard.loc[:, MONTH].str[1:3])
+
+                        df_hr_absences.loc[:, YEAR] = df_hr_absences.loc[:, FISCAL_YEAR].str.replace("-", "")
+                        df_hr_absences.loc[:, YEAR_MONTH] = df_hr_absences.loc[:, FISCAL_YEAR].str.replace("-", "") \
+                            .str.cat(df_hr_absences.loc[:, MONTH].str[1:3])
+
+                        df_hr_sickness.loc[:, YEAR] = df_hr_sickness.loc[:, FISCAL_YEAR].str.replace("-", "")
+                        df_hr_sickness.loc[:, YEAR_MONTH] = df_hr_sickness.loc[:, FISCAL_YEAR].str.replace("-", "") \
+                            .str.cat(df_hr_sickness.loc[:, MONTH].str[1:3])
+
+                        df_hr_training.loc[:, YEAR] = df_hr_training.loc[:, FISCAL_YEAR].str.replace("-", "")
+                        df_hr_training.loc[:, YEAR_MONTH] = df_hr_training.loc[:, FISCAL_YEAR].str.replace("-", "") \
+                            .str.cat(df_hr_training.loc[:, MONTH].str[1:3])
+
+                    except XLRDError as e:
+                        logging.debug('Template does not contain HR specific data [{}]'.format(template, str(e)))
+
                 except XLRDError as e:
-                    logging.warning('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
+                    logging.debug('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
 
                     dict_template = pd.read_excel(template, sheet_name=[PMT_ADDITIONAL_DATA], encoding='utf-8')
                     temp = dict_template[PMT_ADDITIONAL_DATA]
                     temp.columns = map(parse_columns, temp.columns)
-                    df_unknown = df_unknown.append(temp)
+                    df_pmt = df_pmt.append(temp)
 
-        return tuple([df_cym, df_cyd, df_unknown])
+        return tuple([df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training])
 
     def __validate_and_clean_templates(self, templates=None):
         if templates is None:
@@ -95,7 +145,7 @@ class ExcelTemplateDao(RGDaoBase):
         return templates
 
     def __create_measures(self):
-        df_cym, df_cyd, df_unknown = self.get_data_frames()
+        df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training = self.get_data_frames()
         if df_cym is None:
             raise RGError('Unable to create measures from invalid data frame object [{}]'.format(df_cym))
         self.__entities = list()
@@ -139,16 +189,22 @@ class ExcelTemplateDao(RGDaoBase):
                     RGEntityFactory.create_entity(m_type=m_cfy.m_type, data_cfy=d_cfy, data_lfy=d_lfy,
                                                   measure_cfy=m_cfy, measure_lfy=m_lfy))
         # parse unknown data frame
-        self.__parse_unknown_data(df_unknown)
+        self.__parse_abnormal_data(df_pmt, PMT_ADDITIONAL)
+        self.__parse_abnormal_data(df_hr_scorecard, HR_SCORECARD)
+        self.__parse_abnormal_data(df_hr_absences, HR_ABSENCES)
+        self.__parse_abnormal_data(df_hr_sickness, HR_SICKNESS)
+        self.__parse_abnormal_data(df_hr_training, HR_TRAINING)
 
         logging.debug('[{}] entities has been parsed'.format(len(self.__entities)))
 
-    def __parse_unknown_data(self, df_unknown=None):
-        if df_unknown is None or df_unknown.size == 0:
+    def __parse_abnormal_data(self, df, m_type):
+        if df is None or df.size == 0:
             return
+        if m_type is None:
+            raise RGError('Cannot parse abnormal data as unknown measure type provided [{}]'.format(m_type))
         d_list = list()
-        for idx, line in df_unknown.iterrows():
-            d_list.append(RGDataFactory.create_data(m_type=UNKNOWN, df=line))
+        for idx, line in df.iterrows():
+            d_list.append(RGDataFactory.create_data(m_type=m_type, df=line))
 
         values = sorted(set(map(lambda x: x.m_id, d_list)))
         d_list = [[y for y in d_list if y.m_id == x] for x in values]
@@ -160,7 +216,7 @@ class ExcelTemplateDao(RGDaoBase):
                     d_cfy.append(d)
                 elif d.f_year == get_lfy_prefix():
                     d_lfy.append(d)
-            self.__entities.append(RGEntityFactory.create_entity(m_type=UNKNOWN, data_lfy=d_lfy, data_cfy=d_cfy))
+            self.__entities.append(RGEntityFactory.create_entity(m_type=m_type, data_lfy=d_lfy, data_cfy=d_cfy))
 
     @staticmethod
     def __get_data_for_measure(measure, data_list):

@@ -1,5 +1,6 @@
-from constants import SSG, UNKNOWN, CPM, SDM
-from models.entities import CpmEntity, SdmEntity, SsgEntity, UnknownEntity
+from constants import SSG, PMT_ADDITIONAL, CPM, SDM, HR_SCORECARD, HR_ABSENCES, HR_TRAINING, HR_SICKNESS
+from models.entities import CpmEntity, SdmEntity, SsgEntity, PmtAdditionalEntity, HrScorecardEntity, HrAbsencesEntity, \
+    HrSicknessEntity, HrTrainingEntity
 from models.errors import RGError
 
 
@@ -30,7 +31,11 @@ class RGEntityFactory(object):
             CPM: RGEntityFactory.__create_cpm_entity,
             SDM: RGEntityFactory.__create_sdm_entity,
             SSG: RGEntityFactory.__create_ssg_entity,
-            UNKNOWN: RGEntityFactory.__create_unknown_entity
+            PMT_ADDITIONAL: RGEntityFactory.__create_pmt_additional_entity,
+            HR_SCORECARD: RGEntityFactory.__create_hr_scorecard_entity,
+            HR_ABSENCES: RGEntityFactory.__create_hr_absences_entity,
+            HR_SICKNESS: RGEntityFactory.__create_hr_sickness_entity,
+            HR_TRAINING: RGEntityFactory.__create_hr_training_entity
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -51,5 +56,21 @@ class RGEntityFactory(object):
         return SsgEntity(data_cfy=data_cfy, data_lfy=data_lfy, measure_cfy=measure_cfy, measure_lfy=measure_lfy)
 
     @staticmethod
-    def __create_unknown_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
-        return UnknownEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+    def __create_pmt_additional_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return PmtAdditionalEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+
+    @staticmethod
+    def __create_hr_scorecard_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return HrScorecardEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+
+    @staticmethod
+    def __create_hr_absences_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return HrAbsencesEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+
+    @staticmethod
+    def __create_hr_sickness_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return HrSicknessEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+
+    @staticmethod
+    def __create_hr_training_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return HrTrainingEntity(data_lfy=data_lfy, data_cfy=data_cfy)

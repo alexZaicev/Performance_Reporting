@@ -31,6 +31,10 @@ Template Column Names
 CURRENT_YEAR_DATA = 'CurrentYearData'
 CURRENT_YEAR_MEASURES = 'CurrentYearMeasures'
 PMT_ADDITIONAL_DATA = 'PMTAdditionalData'
+HR_SCORECARD_DATA = 'HRScorecardData'
+HR_ABSENCES_DATA = 'HRAbsencesData'
+HR_SICKNESS_DATA = 'HRSicknessData'
+HR_TRAINING_DATA = 'HRTrainingData'
 
 """
 Measure TYPES
@@ -38,9 +42,13 @@ Measure TYPES
 CPM = 'CPM'
 SDM = 'SDM'
 SSG = 'SSG'
-# used by templates that are not related to
-# measure data sources
-UNKNOWN = 'UNKNOWN'
+# used by PMT related templates
+PMT_ADDITIONAL = 'UNKNOWN'
+# used by HR related templates
+HR_SCORECARD = 'HR_SCORECARD'
+HR_ABSENCES = 'HR_ABSENCES'
+HR_SICKNESS = 'HR_SICKNESS'
+HR_TRAINING = 'HR_TRAINING'
 
 """
 Template column names

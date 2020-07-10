@@ -1,5 +1,6 @@
-from constants import CPM, SDM, SSG, UNKNOWN
-from models.datas import CpmData, SdmData, SsgData, UnknownData
+from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES
+from models.datas import CpmData, SdmData, SsgData, PmtAdditionalData, HrScorecardData, HrAbsencesData, HrTrainingData, \
+    HrSicknessData
 from models.errors import RGError
 
 
@@ -27,7 +28,11 @@ class RGDataFactory(object):
             CPM: RGDataFactory.__create_cpm_data,
             SDM: RGDataFactory.__create_sdm_data,
             SSG: RGDataFactory.__create_ssg_data,
-            UNKNOWN: RGDataFactory.__create_unknown_data
+            PMT_ADDITIONAL: RGDataFactory.__create_pmt_additional_data,
+            HR_SCORECARD: RGDataFactory.__create_hr_scorecard_data,
+            HR_ABSENCES: RGDataFactory.__create_hr_absences_data,
+            HR_SICKNESS: RGDataFactory.__create_hr_sickness_data,
+            HR_TRAINING: RGDataFactory.__create_hr_training_data
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -48,5 +53,21 @@ class RGDataFactory(object):
         return SsgData(df=df)
 
     @staticmethod
-    def __create_unknown_data(df=None):
-        return UnknownData(df=df)
+    def __create_pmt_additional_data(df=None):
+        return PmtAdditionalData(df=df)
+
+    @staticmethod
+    def __create_hr_scorecard_data(df=None):
+        return HrScorecardData(df=df)
+
+    @staticmethod
+    def __create_hr_absences_data(df=None):
+        return HrAbsencesData(df=df)
+
+    @staticmethod
+    def __create_hr_sickness_data(df=None):
+        return HrSicknessData(df=df)
+
+    @staticmethod
+    def __create_hr_training_data(df=None):
+        return HrTrainingData(df=df)

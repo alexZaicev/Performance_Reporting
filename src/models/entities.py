@@ -1,6 +1,6 @@
 from abc import ABC
 
-from constants import CPM, SDM, SSG, UNKNOWN
+from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES
 
 
 class RGEntityBase(ABC):
@@ -46,7 +46,31 @@ class SsgEntity(RGEntityBase):
                               measure_lfy=measure_lfy)
 
 
-class UnknownEntity(RGEntityBase):
+class PmtAdditionalEntity(RGEntityBase):
 
-    def __init__(self, m_type=UNKNOWN, data_lfy=None, data_cfy=None):
+    def __init__(self, m_type=PMT_ADDITIONAL, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
+
+
+class HrScorecardEntity(RGEntityBase):
+
+    def __init__(self, m_type=HR_SCORECARD, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
+
+
+class HrAbsencesEntity(RGEntityBase):
+
+    def __init__(self, m_type=HR_ABSENCES, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
+
+
+class HrSicknessEntity(RGEntityBase):
+
+    def __init__(self, m_type=HR_SICKNESS, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
+
+
+class HrTrainingEntity(RGEntityBase):
+
+    def __init__(self, m_type=HR_TRAINING, data_lfy=None, data_cfy=None):
         RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)

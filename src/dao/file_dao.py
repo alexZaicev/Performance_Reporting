@@ -1,6 +1,6 @@
 from abc import ABC
 
-from constants import LEGEND, OFSTED, RISK_MAP, WORKFORCE_EXPENDITURE
+from constants import LEGEND, OFSTED, RISK_MAP, WORKFORCE_EXPENDITURE, SCHOOLS_IN_DEFICIT, FINAL_AUDIT_REPORT
 from dao.dao_base import RGDaoBase
 from models.errors import RGError
 
@@ -35,4 +35,8 @@ class ImageFileDao(FileDao):
                 images[RISK_MAP] = f_path
             elif WORKFORCE_EXPENDITURE in name:
                 images[WORKFORCE_EXPENDITURE] = f_path
+            elif SCHOOLS_IN_DEFICIT in name:
+                images[SCHOOLS_IN_DEFICIT] = f_path
+            elif FINAL_AUDIT_REPORT in name:
+                images[FINAL_AUDIT_REPORT] = f_path
         return images

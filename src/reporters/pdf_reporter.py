@@ -6,7 +6,7 @@ from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
 import text as text
-from models.entities import CpmEntity, SdmEntity, UnknownEntity
+from models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
 from reporters.reporter_base import RGReporterBase
 from utils import *
 
@@ -45,11 +45,11 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        self.__do_compose_cpm_scorecard(options)
-        self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
-        self.__do_compose_sdm_scorecard(options)
+        # self.__do_compose_cpm_scorecard(options)
+        # self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
+        # self.__do_compose_sdm_scorecard(options)
         self.__do_compose_financial_hr_scorecard(options)
-        self.__do_compose_relationship_effectiveness_scorecard(options)
+        # self.__do_compose_relationship_effectiveness_scorecard(options)
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
@@ -132,7 +132,7 @@ class PDFReporter(RGReporterBase):
         self.report.cell(75, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
-        self.__do_compose_school_table(h, options)
+        self.__do_compose_school_table(330 + 7.5, h, options)
         h = self.__do_compose_financial_charts(h, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
@@ -168,10 +168,26 @@ class PDFReporter(RGReporterBase):
                           h=graph_size[1] - 1)
         return h + graph_size[1]
 
-    def __do_compose_school_table(self, h, options):
+    def __do_compose_school_table(self, x, h, options):
         graph_size = (75, 83)
-        self.report.set_xy(337.5, h)
+        self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        self.report.image(options.images[SCHOOLS_IN_DEFICIT], x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1,
+                          h=graph_size[1] / 2)
+
+        entity = get_entity_by_m_id(options.entities, '10_05')
+        comment = ''
+        for d in entity.data_cfy:
+            if d.reportComments is not None and len(d.reportComments) > 0:
+                comment = d.reportComments
+        if len(comment) == 0:
+            for d in entity.data_lfy:
+                if d.reportComments is not None and len(d.reportComments) > 0:
+                    comment = d.reportComments
+
+        self.report.set_xy(x + 0.5, h + graph_size[1] / 2 + 2)
+        self.__set_font(size=6)
+        self.report.multi_cell(graph_size[0] - 1, 2.5, txt=comment, align='J')
 
     def __do_compose_hr_workforce(self, h, options):
         graph_size = (405, 83)
@@ -425,7 +441,7 @@ class PDFReporter(RGReporterBase):
     def __compose_key_results_actions(self, h, entities, m_id=None):
         h += 2
         for entity in entities:
-            if not isinstance(entity, UnknownEntity):
+            if not isinstance(entity, PmtAdditionalEntity):
                 continue
             if entity.data_cfy[0].m_id == m_id:
                 comment = ''

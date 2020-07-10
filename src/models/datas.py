@@ -39,6 +39,13 @@ class RGDataModel(RGModelBase):
         self.yearQuarter = get_val(df, YEAR_QUARTER)
 
 
+class HrDataModel(RGModelBase):
+
+    def __init__(self, m_type=None, df=None):
+        RGModelBase.__init__(self, m_type=m_type, df=df)
+        self.dataFormat = get_val(df, DATA_FORMAT)
+
+
 class CpmData(RGDataModel):
 
     def __init__(self, m_type=CPM, df=None):
@@ -57,8 +64,37 @@ class SsgData(RGDataModel):
         RGDataModel.__init__(self, m_type=m_type, df=df)
 
 
-class UnknownData(RGDataModel):
-    def __init__(self, m_type=UNKNOWN, df=None):
+class PmtAdditionalData(RGDataModel):
+
+    def __init__(self, m_type=PMT_ADDITIONAL, df=None):
         RGDataModel.__init__(self, m_type=m_type, df=df)
         self.measureTextColumn1 = get_val(df, MEASURE_TEXT_COLUMN_1)
         self.measureTextColumn2 = get_val(df, MEASURE_TEXT_COLUMN_2)
+
+
+class HrScorecardData(HrDataModel):
+
+    def __init__(self, m_type=HR_SCORECARD, df=None):
+        HrDataModel.__init__(self, m_type=m_type, df=df)
+
+
+class HrAbsencesData(HrDataModel):
+
+    def __init__(self, m_type=HR_ABSENCES, df=None):
+        HrDataModel.__init__(self, m_type=m_type, df=df)
+
+
+class HrSicknessData(HrDataModel):
+
+    def __init__(self, m_type=HR_SICKNESS, df=None):
+        HrDataModel.__init__(self, m_type=m_type, df=df)
+
+
+class HrTrainingData(HrDataModel):
+
+    def __init__(self, m_type=HR_TRAINING, df=None):
+        HrDataModel.__init__(self, m_type=m_type, df=df)
+
+
+
+

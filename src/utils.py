@@ -4,7 +4,7 @@ from datetime import datetime
 from os.path import dirname, abspath, join
 
 from constants import *
-from report_text import NOT_APPLICABLE, PERCENTAGE, NUMBER
+from text import NOT_APPLICABLE, PERCENTAGE, NUMBER
 
 
 def timestamp():
@@ -36,7 +36,7 @@ def get_font(name=DEJAVU_SANS):
 
 
 def get_color(name=BLACK):
-    from models import RGColor
+    from models.utilities import RGColor
     COLOR_MAP = {
         WHITE: RGColor(255, 255, 255),
         BLACK: RGColor(),

@@ -5,8 +5,9 @@ from fpdf import FPDF
 from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
-import report_text as rt
-from models import RGReporterBase, CpmEntity, UnknownEntity, SdmEntity
+import text as text
+from models.entities import CpmEntity, SdmEntity, UnknownEntity
+from reporters.reporter_base import RGReporterBase
 from utils import *
 
 
@@ -52,8 +53,8 @@ class PDFReporter(RGReporterBase):
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
-        self.report.cell(220, h=8.5, txt=rt.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
-        self.report.cell(185, h=8.5, txt=rt.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h1 = self.__do_compose_effectiveness_and_compliance(7.5 + 220, h, options)
@@ -61,13 +62,13 @@ class PDFReporter(RGReporterBase):
 
         h1 = self.__create_scorecard_top(add_first=False, h=h1)
         self.report.set_xy(220 + 7.5, h1)
-        self.report.cell(185, h=8.5, txt=rt.DECISION_PLANNING_CABINET, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.DECISION_PLANNING_CABINET, fill=1, align='C', border=1)
         h1 += 8.5
         self.__reset_colors()
         self.__do_compose_decision_planning_cabinet(220 + 7.5, h1, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
-        self.report.cell(220, h=8.5, txt=rt.CORPORATE_RISKS, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.CORPORATE_RISKS, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         self.__do_compose_corporate_risks(h, options)
@@ -127,28 +128,28 @@ class PDFReporter(RGReporterBase):
 
     def __do_compose_financial_hr_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
-        self.report.cell(330, h=8.5, txt=rt.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
-        self.report.cell(75, h=8.5, txt=rt.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        self.report.cell(330, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
+        self.report.cell(75, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         self.__do_compose_school_table(h, options)
         h = self.__do_compose_financial_charts(h, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
-        self.report.cell(405, h=8.5, txt=rt.HUMAN_RESOURCES_WORKFORCE, fill=1, align='C', border=1)
+        self.report.cell(405, h=8.5, txt=text.HUMAN_RESOURCES_WORKFORCE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h = self.__do_compose_hr_workforce(h, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
-        self.report.cell(220, h=8.5, txt=rt.HEALTH_AND_SAFETY, fill=1, align='C', border=1)
-        self.report.cell(185, h=8.5, txt=rt.TRAINING_AND_DEVELOPMENT, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.HEALTH_AND_SAFETY, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.TRAINING_AND_DEVELOPMENT, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h = self.__do_compose_health_and_safety(h, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
-        self.report.cell(220, h=8.5, txt=rt.WORKFORCE_EXPENDITURE, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.WORKFORCE_EXPENDITURE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h = self.__do_compose_workforce(h, options)
@@ -181,8 +182,8 @@ class PDFReporter(RGReporterBase):
     def __do_compose_financial_charts(self, h, options):
         graph_size = (110, 83)
         m_ids = ['9_08', '9_09', '9_10']
-        titles = [rt.COLLECTION_OF_COUNCIL_TAX_IN_YEAR, rt.COLLECTION_OF_BUSINESS_RATES_IN_YEAR,
-                  rt.COUNCIL_TAX_PAID_BY_DIRECT_DEBIT]
+        titles = [text.COLLECTION_OF_COUNCIL_TAX_IN_YEAR, text.COLLECTION_OF_BUSINESS_RATES_IN_YEAR,
+                  text.COUNCIL_TAX_PAID_BY_DIRECT_DEBIT]
         for m_id in m_ids:
             x = 7.5 + (graph_size[0] * m_ids.index(m_id))
 
@@ -208,7 +209,7 @@ class PDFReporter(RGReporterBase):
         data_current_pos_list = get_current_pos(entity.data())
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
-            baseline = NOT_APPLICABLE
+            baseline = text.NOT_APPLICABLE
         else:
             recent_data = data_current_pos_list[len(data_current_pos_list) - 1]
             if FREQ_ANNUAL in frequency:
@@ -226,25 +227,25 @@ class PDFReporter(RGReporterBase):
             text_dot = dot
 
         self.__set_font(is_bold=True, size=5)
-        self.report.cell(14, 6, rt.DOT, border='L', ln=0, align='C')
+        self.report.cell(14, 6, text.DOT, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
         self.report.cell(15, 6, text_dot, border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
-        self.report.cell(14, 6, rt.ACTUAL, border='L', ln=0, align='C')
+        self.report.cell(14, 6, text.ACTUAL, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
         self.report.cell(15, 6, result, border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
-        self.report.cell(14, 6, rt.TARGET, border='L', ln=0, align='C')
+        self.report.cell(14, 6, text.TARGET, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
-        self.report.multi_cell(15, 3, '{} ({})'.format(target, rt.IN_YEAR_FORECAST), border='R', ln=2, align='C')
+        self.report.multi_cell(15, 3, '{} ({})'.format(target, text.IN_YEAR_FORECAST), border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
-        self.report.cell(14, 6, rt.BASELINE, border='L', ln=0, align='C')
+        self.report.cell(14, 6, text.BASELINE, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
         self.report.cell(15, 6, baseline, border='R', ln=2, align='C')
         self.report.cell(-14)
@@ -296,9 +297,9 @@ class PDFReporter(RGReporterBase):
     def __do_compose_cpm_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True)
 
-        self.report.cell(112, h=8.5, txt=rt.COUNCIL_PLANS_MEASURE_SUMMARY, fill=1, align='C', border=1)
-        self.report.cell(153, h=8.5, txt=rt.KEY_RESULTS_ACTIONS, fill=1, align='C', border=1)
-        self.report.cell(140, h=8.5, txt=rt.KEY, fill=1, align='C', border=1)
+        self.report.cell(112, h=8.5, txt=text.COUNCIL_PLANS_MEASURE_SUMMARY, fill=1, align='C', border=1)
+        self.report.cell(153, h=8.5, txt=text.KEY_RESULTS_ACTIONS, fill=1, align='C', border=1)
+        self.report.cell(140, h=8.5, txt=text.KEY, fill=1, align='C', border=1)
 
         self.__reset_colors()
 
@@ -323,7 +324,7 @@ class PDFReporter(RGReporterBase):
         h += 1
         self.report.set_xy(9, h)
         self.report.set_font(REPORT_FONT, 'B', 6)
-        self.report.cell(35, 6, '{}:'.format(rt.TOTAL_MEASURES), align='L')
+        self.report.cell(35, 6, '{}:'.format(text.TOTAL_MEASURES), align='L')
         n_sorted = len(e_sorted)
         self.report.cell(20, 6, '{}'.format(n_sorted), align='L')
 
@@ -344,9 +345,9 @@ class PDFReporter(RGReporterBase):
         t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, exclusions=exc)
         h += 3
         self.report.set_xy(15, h)
-        self.report.cell(35, 6, '{}:'.format(rt.AVAILABLE_TO_REPORT), align='L')
+        self.report.cell(35, 6, '{}:'.format(text.AVAILABLE_TO_REPORT), align='L')
         m_sum = len(b_sorted) + len(g_sorted) + len(r_sorted) + len(a_sorted) + len(t_sorted)
-        self.report.cell(50, 6, rt.INCLUDING_TREND_OR_PROJECT_UPDATE_MEASURES.format(m_sum, len(t_sorted)), align='L')
+        self.report.cell(50, 6, text.INCLUDING_TREND_OR_PROJECT_UPDATE_MEASURES.format(m_sum, len(t_sorted)), align='L')
 
         h += 6
         self.report.set_xy(7.5, h)
@@ -355,15 +356,15 @@ class PDFReporter(RGReporterBase):
 
         h += 2
         self.report.set_xy(23.5, h)
-        self.report.multi_cell(16, h=2.5, txt=rt.LEAN_WORK_INVEST, align='C')
-        self.report.multi_cell(16, h=2.5, txt=rt.GROW_UP, align='C')
-        self.report.multi_cell(16, h=2.5, txt=rt.AGE_WELL, align='C')
-        self.report.multi_cell(16, h=2.5, txt=rt.LIVE_IN, align='C')
+        self.report.multi_cell(16, h=2.5, txt=text.LEAN_WORK_INVEST, align='C')
+        self.report.multi_cell(16, h=2.5, txt=text.GROW_UP, align='C')
+        self.report.multi_cell(16, h=2.5, txt=text.AGE_WELL, align='C')
+        self.report.multi_cell(16, h=2.5, txt=text.LIVE_IN, align='C')
         if is_cpm:
-            self.report.multi_cell(16, h=2.5, txt=rt.CWG, align='C')
+            self.report.multi_cell(16, h=2.5, txt=text.CWG, align='C')
         else:
-            self.report.multi_cell(16, h=2.5, txt=rt.SSG, align='C')
-        self.report.multi_cell(16, h=2.5, txt=rt.TOTAL, align='C')
+            self.report.multi_cell(16, h=2.5, txt=text.SSG, align='C')
+        self.report.multi_cell(16, h=2.5, txt=text.TOTAL, align='C')
 
         h += 6
         self.report.set_font(REPORT_FONT, '', 6)
@@ -377,33 +378,33 @@ class PDFReporter(RGReporterBase):
             self.report.set_xy(7.5, h)
 
             if i == 0:
-                self.__compose_measure_summary_row(rt.BLUE, remove_entities_with_no_outcome(b_sorted),
+                self.__compose_measure_summary_row(text.BLUE, remove_entities_with_no_outcome(b_sorted),
                                                    color=get_color(BLUE), is_cpm=is_cpm)
             elif i == 1:
-                self.__compose_measure_summary_row(rt.GREEN, remove_entities_with_no_outcome(g_sorted),
+                self.__compose_measure_summary_row(text.GREEN, remove_entities_with_no_outcome(g_sorted),
                                                    color=get_color(GREEN), is_cpm=is_cpm)
             elif i == 2:
-                self.__compose_measure_summary_row(rt.AMBER, remove_entities_with_no_outcome(a_sorted),
+                self.__compose_measure_summary_row(text.AMBER, remove_entities_with_no_outcome(a_sorted),
                                                    color=get_color(AMBER), is_cpm=is_cpm)
             elif i == 3:
-                self.__compose_measure_summary_row(rt.RED, remove_entities_with_no_outcome(r_sorted),
+                self.__compose_measure_summary_row(text.RED, remove_entities_with_no_outcome(r_sorted),
                                                    color=get_color(RED), is_cpm=is_cpm)
             elif i == 4:
-                self.__compose_measure_summary_row(rt.TREND, remove_entities_with_no_outcome(t_sorted),
+                self.__compose_measure_summary_row(text.TREND, remove_entities_with_no_outcome(t_sorted),
                                                    color=get_color(GREY), is_cpm=is_cpm)
             elif i == 5:
-                self.__compose_measure_summary_row(rt.NYD, remove_entities_with_no_outcome(nyd_sorted), is_cpm=is_cpm)
+                self.__compose_measure_summary_row(text.NYD, remove_entities_with_no_outcome(nyd_sorted), is_cpm=is_cpm)
             elif i == 6:
-                self.__compose_measure_summary_row(rt.AWAITING, remove_entities_with_no_outcome(aw_sorted),
+                self.__compose_measure_summary_row(text.AWAITING, remove_entities_with_no_outcome(aw_sorted),
                                                    is_cpm=is_cpm)
             elif i == 7:
-                self.__compose_measure_summary_row(rt.PREVIOUSLY_REPORTED, remove_entities_with_no_outcome(pr_sorted),
+                self.__compose_measure_summary_row(text.PREVIOUSLY_REPORTED, remove_entities_with_no_outcome(pr_sorted),
                                                    is_cpm=is_cpm)
             h += 5
 
     def __compose_measure_summary_row(self, txt='', entities=(), color=get_color(BLACK), is_cpm=True):
         self.report.set_text_color(color.r, color.g, color.b)
-        if txt == rt.PREVIOUSLY_REPORTED:
+        if txt == text.PREVIOUSLY_REPORTED:
             self.report.multi_cell(16, h=3, txt=txt, align='L')
         else:
             self.report.multi_cell(16, h=5, txt=txt, align='L')
@@ -497,7 +498,7 @@ class PDFReporter(RGReporterBase):
             color = get_color(WHITE)
             self.report.set_text_color(color.r, color.g, color.b)
             # TODO get month and FY
-            self.report.cell(w, h=8.5, txt=rt.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
+            self.report.cell(w, h=8.5, txt=text.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
             h += 8.5
 
         if add_second:
@@ -512,8 +513,8 @@ class PDFReporter(RGReporterBase):
     def __do_compose_sdm_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True)
 
-        self.report.cell(112, h=8.5, txt=rt.SUMMARY, fill=1, align='C', border=1)
-        self.report.cell(293, h=8.5, txt=rt.KEY_RESULTS_SERVICE_DELIVERY_MEASURES, fill=1, align='C', border=1)
+        self.report.cell(112, h=8.5, txt=text.SUMMARY, fill=1, align='C', border=1)
+        self.report.cell(293, h=8.5, txt=text.KEY_RESULTS_SERVICE_DELIVERY_MEASURES, fill=1, align='C', border=1)
 
         self.__reset_colors()
 
@@ -584,7 +585,7 @@ class PDFReporter(RGReporterBase):
     def __compose_benchmark_tbl(self, data_list, d_format):
         data_with_bmk_list = get_bmk(data_list)
         if len(data_with_bmk_list) == 0:
-            nat_avg = rt.NO_BENCHMARK
+            nat_avg = text.NO_BENCHMARK
             b_at_bmk, quartile, bmk_y, bmk_g = '', '', '', ''
         else:
             recent_data = data_with_bmk_list[len(data_with_bmk_list) - 1]
@@ -593,36 +594,36 @@ class PDFReporter(RGReporterBase):
 
             quartile = format_value(recent_data.birmQuartilePosition)
             if quartile is None:
-                quartile = rt.NOT_APPLICABLE
+                quartile = text.NOT_APPLICABLE
             quartile = quartile.upper()
 
-            bmk_y = '{} {}'.format(rt.BENCHMARK, format_value(recent_data.yearOfBenchmarkData))
+            bmk_y = '{} {}'.format(text.BENCHMARK, format_value(recent_data.yearOfBenchmarkData))
             bmk_g = format_value(recent_data.benchmarkGroup)
 
         self.__set_font(is_bold=True, size=8)
-        self.report.cell(37, 6, rt.BENCHMARK, 1, 2, 'C')
+        self.report.cell(37, 6, text.BENCHMARK, 1, 2, 'C')
 
         self.__set_font(size=7)
-        self.report.cell(17, 6, rt.PREFERRED_DOT, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.PREFERRED_DOT, border='L', ln=0, align='C')
         self.report.cell(20, 6, ' ', border='R', ln=2, align='C')
         self.report.cell(-17)
 
-        self.report.cell(17, 6, rt.NATIONAL_AVERAGE, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.NATIONAL_AVERAGE, border='L', ln=0, align='C')
         self.report.cell(20, 6, nat_avg, border='R', ln=2, align='C')
         self.report.cell(-17)
 
-        self.report.cell(17, 6, rt.BIRMINGHAM, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.BIRMINGHAM, border='L', ln=0, align='C')
         self.report.cell(20, 6, b_at_bmk, border='R', ln=2, align='C')
         self.report.cell(-17)
 
-        self.report.cell(17, 6, rt.QUARTILE, border='L', ln=0, align='C')
-        if rt.FOURTH in quartile:
+        self.report.cell(17, 6, text.QUARTILE, border='L', ln=0, align='C')
+        if text.FOURTH in quartile:
             color = get_color(RED)
-        elif rt.THIRD in quartile:
+        elif text.THIRD in quartile:
             color = get_color(AMBER)
-        elif rt.SECOND in quartile:
+        elif text.SECOND in quartile:
             color = get_color(GREEN)
-        elif rt.FIRST in quartile:
+        elif text.FIRST in quartile:
             color = get_color(BLUE)
         else:
             color = get_color(WHITE)
@@ -649,13 +650,13 @@ class PDFReporter(RGReporterBase):
                 dot = format_value(recent_data.dotFromPreviousMonth)
             result = format_value(recent_data.result, d_format)
             target = format_value(recent_data.target, d_format)
-            fill_bool = recent_data.status.upper() == rt.PROVISIONAL
+            fill_bool = recent_data.status.upper() == text.PROVISIONAL
             baseline = format_value(entity.get_measure(recent_data).baseline, d_format)
         self.__set_font(is_bold=True, size=8)
-        self.report.cell(37, 6, rt.CURRENT_POSITION, 1, 2, 'C')
+        self.report.cell(37, 6, text.CURRENT_POSITION, 1, 2, 'C')
         self.__set_font(is_bold=False, size=7)
 
-        self.report.cell(17, 6, rt.DOT, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.DOT, border='L', ln=0, align='C')
         text_dot = " "
         if ~(dot in ["p", "q", "r", "s", "u"]):
             text_dot = dot
@@ -663,15 +664,15 @@ class PDFReporter(RGReporterBase):
         self.report.cell(-17)
 
         self.report.set_fill_color(r=255, g=255, b=0)
-        self.report.cell(17, 6, rt.ACTUAL, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.ACTUAL, border='L', ln=0, align='C')
         self.report.cell(20, 6, result, border='R', ln=2, align='C', fill=fill_bool)
         self.report.cell(-17)
 
-        self.report.cell(17, 6, rt.TARGET, border='L', ln=0, align='C')
+        self.report.cell(17, 6, text.TARGET, border='L', ln=0, align='C')
         self.report.cell(20, 6, target, border='R', ln=2, align='C')
         self.report.cell(-17)
 
-        self.report.cell(17, 6, rt.BASELINE, border='LB', ln=0, align='C')
+        self.report.cell(17, 6, text.BASELINE, border='LB', ln=0, align='C')
         self.report.cell(20, 6, baseline, border='RB', ln=2, align='C')
         self.report.cell(-17)
 
@@ -681,10 +682,10 @@ class PDFReporter(RGReporterBase):
             return
         recent_data = data_qp_list[len(data_qp_list) - 1]
         self.__set_font(is_bold=True, size=8)
-        self.report.cell(35, 6, rt.QUARTILE_PROJECTION, 0, 2, 'C')
+        self.report.cell(35, 6, text.QUARTILE_PROJECTION, 0, 2, 'C')
         self.__set_font(size=7)
-        self.report.cell(35, 3, rt.CURRENT_ACTUAL_AGAINST, 0, 2, 'C')
-        self.report.cell(35, 3, rt.NATIONAl_DATA_AVAILABLE, 0, 2, 'C')
+        self.report.cell(35, 3, text.CURRENT_ACTUAL_AGAINST, 0, 2, 'C')
+        self.report.cell(35, 3, text.NATIONAl_DATA_AVAILABLE, 0, 2, 'C')
         g_chart = graph_objects.Figure(data=graph_objects.Indicator(
             mode='gauge',
             value=0,

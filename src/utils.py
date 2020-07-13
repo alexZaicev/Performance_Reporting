@@ -4,6 +4,7 @@ from datetime import datetime
 from os.path import dirname, abspath, join
 
 from constants import *
+from models.errors import RGError
 from text import NOT_APPLICABLE, PERCENTAGE, NUMBER
 
 
@@ -12,12 +13,28 @@ def timestamp():
     return '{:02d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
-def get_prev_month():
+def get_prev_fiscal_month():
     now = datetime.now()
     month = now.month - 1
     if month == 0:
         month = 12
-    return month
+
+    # convert ordinary to fiscal month
+    FM = {
+        1: 4,
+        2: 5,
+        3: 6,
+        4: 7,
+        5: 8,
+        6: 9,
+        7: 10,
+        8: 11,
+        9: 12,
+        10: 1,
+        11: 2,
+        12: 3
+    }
+    return FM[month]
 
 
 def get_dir_path(name=ROOT):
@@ -89,13 +106,15 @@ def get_cfy():
         return now.year - 1
 
 
-def get_cfy_prefix():
-    cfy = get_cfy()
+def get_cfy_prefix(cfy=None):
+    if cfy is None:
+        cfy = get_cfy()
     return '%04d-%s' % (cfy, str(cfy + 1)[2:])
 
 
-def get_lfy_prefix():
-    cfy = get_cfy()
+def get_lfy_prefix(cfy=None):
+    if cfy is None:
+        cfy = get_cfy()
     return '%04d-%s' % (cfy - 1, str(cfy)[2:])
 
 
@@ -364,6 +383,27 @@ def get_data_by_m_id_and_date(entities, m_id, fym):
         if e is None:
             return None
         for d in e.data():
-            if str(d.yearMonth) == fym:
+            if str(d.yearMonth) == str(fym):
                 return d
     return None
+
+
+def get_fiscal_month_id(s_month):
+    if s_month is None or s_month.upper() not in list(FISCAL_MONTHS.values()):
+        raise RGError('Unknown fiscal month provided [{}]'.format(s_month))
+    for k, v in FISCAL_MONTHS.items():
+        if v == s_month.upper():
+            return k
+    raise RGError(
+        'Provided fiscal month [{}] cannot be parsed. Please double check the correctness of the 3-character '
+        'month name'.format(s_month))
+
+
+def filter_data_by_fym(data, fym):
+    result = list()
+    if data is not None and fym is not None:
+        for d in data:
+            stamp = try_parse(d.yearMonth, is_int=True)
+            if stamp is not None and fym >= stamp:
+                result.append(d)
+    return result

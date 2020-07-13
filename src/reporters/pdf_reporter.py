@@ -47,11 +47,11 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        # self.__do_compose_cpm_scorecard(options)
-        # self.__do_compose_grid_charts(entities=options.entities, exclusions=options.exclusions)
-        # self.__do_compose_sdm_scorecard(options)
+        self.__do_compose_cpm_scorecard(options)
+        self.__do_compose_grid_charts(options)
+        self.__do_compose_sdm_scorecard(options)
         self.__do_compose_financial_hr_scorecard(options)
-        # self.__do_compose_relationship_effectiveness_scorecard(options)
+        self.__do_compose_relationship_effectiveness_scorecard(options)
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
@@ -965,16 +965,16 @@ class PDFReporter(RGReporterBase):
                 self.report.multi_cell(150, h=2.5, txt=comment, align='J')
                 break
 
-    def __do_compose_grid_charts(self, entities=None, exclusions=None):
+    def __do_compose_grid_charts(self, options):
         graphs = 0
         coords = list(self.left_top)
 
         # compose grid charts for CPM measures
-        for entity in entities:
+        for entity in options.entities:
             if not isinstance(entity, CpmEntity):
                 continue
             # check if entity should be excluded from the report
-            if exclusions is not None and entity.measure_cfy.m_id in exclusions:
+            if options.exclusions is not None and entity.measure_cfy.m_id in options.exclusions:
                 logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
                 continue
             # check if coords are equal to initial left-top
@@ -983,7 +983,7 @@ class PDFReporter(RGReporterBase):
                 self.report.add_page()
             graphs += 1
             # create chart
-            self.__compose_visuals_for_entity(entity, coords)
+            self.__compose_visuals_for_entity(entity, coords, options.fym)
 
             # check if number of graphs on grid row has exceeded the allowed amount
             if graphs % self.grid_size[1] == 0:
@@ -1090,13 +1090,13 @@ class PDFReporter(RGReporterBase):
         else:
             self.report.set_font(REPORT_FONT, '', size)
 
-    def __compose_visuals_for_entity(self, entity, left_top):
+    def __compose_visuals_for_entity(self, entity, left_top, fym):
         self.__reset_colors()
         self.report.set_xy(left_top[0], left_top[1])
         d_format = entity.measure_cfy.data_format
         frequency = entity.measure_cfy.frequency.upper()
 
-        self.__compose_bar_chart(entity.measure_cfy, entity.data(), frequency, d_format)
+        self.__compose_bar_chart(entity.measure_cfy, filter_data_by_fym(entity.data(), fym), frequency, d_format)
 
         self.__add_empty_line()
         # TODO conclude how to get comments from last/current fiscal year
@@ -1307,22 +1307,20 @@ class PDFReporter(RGReporterBase):
                 y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         elif freq == FREQ_QUARTER:
             x_ticks = sorted(set([try_parse(x.yearQuarter, is_int=True) for x in data_list]))
-            # create two list of quarters for last & current fiscal years
-            x_ticks_lbl = sorted(set([x.quarter for x in data_list]))
-            x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
+            # get quarter abbreviations
+            x_ticks_lbl = QUARTERS + QUARTERS
+
+            PDFReporter.__validate_ticks(x_ticks, x_ticks_lbl, 4)
 
             if populate_target:
                 y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         else:
             x_ticks = [try_parse(x.yearMonth, is_int=True) for x in data_list]
             # get month abbreviations
-            x_ticks_lbl = dict()
-            for x in data_list:
-                m_dt = x.month.split(' - ')
-                x_ticks_lbl[try_parse(m_dt[0].replace('M', ''), is_int=True)] = m_dt[1]
-            # create 2 list of month abbreviations for last & current fiscal year
-            x_ticks_lbl = list((x_ticks_lbl.values()))
+            x_ticks_lbl = list(FISCAL_MONTHS.values())
             x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
+
+            PDFReporter.__validate_ticks(x_ticks, x_ticks_lbl, 12)
 
             if populate_target:
                 y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
@@ -1341,3 +1339,22 @@ class PDFReporter(RGReporterBase):
         elif freq in ['A', 'ANNUAL', 'ANNUALLY', 'YEAR', 'YEARLY', 'BI A', 'BI ANNUAL', 'BI_ANNUALLY']:
             r_freq = FREQ_ANNUAL
         return r_freq
+
+    @staticmethod
+    def __validate_ticks(x_ticks, x_ticks_lbl, value):
+        if len(x_ticks_lbl) > len(x_ticks):
+            last_tick = x_ticks[len(x_ticks) - 1]
+            if len(x_ticks) < value:
+                for i in range(0, value - len(x_ticks), 1):
+                    last_tick += 1
+                    x_ticks.append(str(last_tick))
+                # increase fiscal year and deduct 12 months
+                last_tick += 10100 - value
+                for i in range(0, value, 1):
+                    last_tick += 1
+                    x_ticks.append(str(last_tick))
+            else:
+                for i in range(0, len(x_ticks_lbl) - len(x_ticks), 1):
+                    last_tick += 1
+                    x_ticks.append(str(last_tick))
+

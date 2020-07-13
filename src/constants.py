@@ -140,6 +140,21 @@ FREQ_ANNUAL = 'A'
 FREQ_QUARTER = 'Q'
 FREQ_MONTHLY = 'M'
 DOTS = ["p", "q", "r", "s", "u"]
+FISCAL_MONTHS = {
+        1: 'APR',
+        2: 'MAY',
+        3: 'JUN',
+        4: 'JUL',
+        5: 'AUG',
+        6: 'SEP',
+        7: 'OCT',
+        8: 'NOV',
+        9: 'DEC',
+        10: 'JAN',
+        11: 'FEB',
+        12: 'MAR'
+    }
+QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4']
 
 PERF_BLUE = 'BLUE'
 PERF_RED = 'RED'

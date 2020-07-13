@@ -14,11 +14,11 @@ from utils import get_cfy_prefix, get_lfy_prefix, parse_columns, get_val
 
 class ExcelTemplateDao(RGDaoBase):
 
-    def __init__(self, year=None, path=None):
-        RGDaoBase.__init__(self, year=year)
+    def __init__(self, year=None, month=None, path=None):
+        RGDaoBase.__init__(self, year=year, month=month)
         self.path = path
-        self.current_prefix = get_cfy_prefix()
-        self.last_prefix = get_lfy_prefix()
+        self.current_prefix = get_cfy_prefix(cfy=year)
+        self.last_prefix = get_lfy_prefix(cfy=year)
         self.__entities = None
 
     def get_templates(self):
@@ -172,10 +172,10 @@ class ExcelTemplateDao(RGDaoBase):
             d_lfy = None
             for m in m_list:
                 if m.m_id == m_id:
-                    if m.f_year == get_cfy_prefix():
+                    if m.f_year == get_cfy_prefix(cfy=self.year):
                         m_cfy = m
                         continue
-                    if m.f_year == get_lfy_prefix():
+                    if m.f_year == get_lfy_prefix(cfy=self.year):
                         m_lfy = m
                         continue
             if m_cfy is not None:
@@ -212,9 +212,9 @@ class ExcelTemplateDao(RGDaoBase):
         for d_group in d_list:
             d_cfy, d_lfy = list(), list()
             for d in d_group:
-                if d.f_year == get_cfy_prefix():
+                if d.f_year == get_cfy_prefix(cfy=self.year):
                     d_cfy.append(d)
-                elif d.f_year == get_lfy_prefix():
+                elif d.f_year == get_lfy_prefix(cfy=self.year):
                     d_lfy.append(d)
             self.__entities.append(RGEntityFactory.create_entity(m_type=m_type, data_lfy=d_lfy, data_cfy=d_cfy))
 

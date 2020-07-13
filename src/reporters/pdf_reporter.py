@@ -216,10 +216,10 @@ class PDFReporter(RGReporterBase):
         self.report.cell(w / 11, h=h_line, txt=title, align='L', border=1)
 
     def __create_training_total_table_row(self, x, h, w, h_line, data):
-        month = data[0].month[:-3]
+        month = data[0].month[-3:]
         self.__setup_training_table_row(x, h, w, h_line, text.MONTH_TOTAL.format(month), is_total=True)
         for d in data:
-            self.__create_training_table_row(w, h_line, 0)
+            self.__create_training_table_row(w, h_line, d.bcc)
 
     def __create_training_adult_social_care_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE)

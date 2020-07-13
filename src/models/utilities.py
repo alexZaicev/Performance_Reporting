@@ -1,3 +1,6 @@
+from utils import get_cfy_prefix, get_prev_month
+
+
 class RGColor(object):
 
     def __init__(self, r=0, g=0, b=0):
@@ -23,9 +26,11 @@ class RGColor(object):
 
 class RGReporterOptions(object):
 
-    def __init__(self, entities=None, exclusions=None, out_dir=None, images=None):
+    def __init__(self, entities=None, exclusions=None, out_dir=None, images=None,
+                 fym='{}{:02d}'.format(get_cfy_prefix().replace('-', ''), get_prev_month())):
         object.__init__(self)
         self.entities = entities
         self.exclusions = exclusions
         self.out_dir = out_dir
         self.images = images
+        self.fym = fym

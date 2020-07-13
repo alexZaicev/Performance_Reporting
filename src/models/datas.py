@@ -12,7 +12,6 @@ class RGDataModel(RGModelBase):
         RGModelBase.__init__(self, m_type=m_type, df=df)
         self.frequency = get_val(df, FREQUENCY)
         self.quarter = get_val(df, QUARTER)
-        self.month = get_val(df, MONTH)
         self.result = get_val(df, RESULT)
         self.target = get_val(df, TARGET)
         self.performance = get_val(df, PERFORMANCE)
@@ -44,6 +43,8 @@ class HrDataModel(RGModelBase):
     def __init__(self, m_type=None, df=None):
         RGModelBase.__init__(self, m_type=m_type, df=df)
         self.dataFormat = get_val(df, DATA_FORMAT)
+        self.year = get_val(df, YEAR)
+        self.yearMonth = get_val(df, YEAR_MONTH)
 
 
 class CpmData(RGDataModel):
@@ -125,3 +126,4 @@ class HrTrainingData(HrDataModel):
         self.hrAndOrganizationDevelopment = get_val(df, HR_AND_ORGANISATION_DEVELOPMENT)
         self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL)
         self.dateOfData = get_val(df, DATE_OF_DATA)
+        self.commonwealthGames = get_val(df, COMMONWEALTH_GAMES)

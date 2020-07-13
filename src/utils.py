@@ -12,6 +12,14 @@ def timestamp():
     return '{:02d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
+def get_prev_month():
+    now = datetime.now()
+    month = now.month - 1
+    if month == 0:
+        month = 12
+    return month
+
+
 def get_dir_path(name=ROOT):
     base = dirname(abspath(__file__)).replace('\\src', '')
     DIR_PATH = {
@@ -41,12 +49,13 @@ def get_color(name=BLACK):
         WHITE: RGColor(255, 255, 255),
         BLACK: RGColor(),
         RED: RGColor(r=255),
-        GREEN: RGColor(255, 153, 51),
-        AMBER: RGColor(g=255),
+        AMBER: RGColor(255, 153, 51),
+        GREEN: RGColor(g=255),
         BLUE: RGColor(g=128, b=255),
         GREY: RGColor(r=128, g=128, b=128),
         DARK_BLUE: RGColor(r=31, g=73, b=125),
-        AQUA: RGColor(r=83, g=141, b=213)
+        AQUA: RGColor(r=83, g=141, b=213),
+        LIGHT_AQUA: RGColor(220, 230, 241)
     }
     try:
         return COLOR_MAP[name]
@@ -118,7 +127,7 @@ def get_val(df, key):
                     logging.error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
             return val
     except KeyError:
-        logging.error('Data frame does not contain the following key value [{}]'.format(key))
+        logging.debug('Data frame does not contain the following key value [{}]'.format(key))
     return None
 
 
@@ -334,3 +343,27 @@ def get_entity_by_m_id(entities, m_id, has_measure=True):
             return e
     return None
 
+
+def get_variance_and_dot(a, b):
+    variance = b - a
+    if variance > 0:
+        dot = '\u25b2'
+    elif variance < 0:
+        dot = '\u25bd'
+    else:
+        dot = '\u25b6'
+    return variance, dot
+
+
+def get_data_by_m_id_and_date(entities, m_id, fym):
+    if entities is not None and m_id is not None:
+        e = None
+        for entity in entities:
+            if len(entity.data()) > 0 and entity.data()[0].m_id == m_id:
+                e = entity
+        if e is None:
+            return None
+        for d in e.data():
+            if str(d.yearMonth) == fym:
+                return d
+    return None

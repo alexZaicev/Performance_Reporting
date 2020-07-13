@@ -1,6 +1,8 @@
+import math
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 from fpdf import FPDF
 from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
@@ -146,6 +148,7 @@ class PDFReporter(RGReporterBase):
         self.report.cell(185, h=8.5, txt=text.TRAINING_AND_DEVELOPMENT, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
+        self.__do_compose_training_table(7.5 + 220, h, options)
         h = self.__do_compose_health_and_safety(h, options)
 
         h = self.__create_scorecard_top(add_first=False, h=h)
@@ -154,14 +157,234 @@ class PDFReporter(RGReporterBase):
         self.__reset_colors()
         h = self.__do_compose_workforce(h, options)
 
-    def __do_compose_health_and_safety(self, h, options):
-        graph_size = (220, 53)
+    def __do_compose_training_table(self, x, h, options):
+        graph_size = (185, 91.5)
+        self.report.set_xy(x, h)
+        self.report.cell(graph_size[0], h=graph_size[1], border=1)
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        color = get_color(LIGHT_AQUA)
+        self.report.set_fill_color(r=color.r, g=color.g, b=color.b)
+        h_line = 8.5
+        self.report.multi_cell(graph_size[0] / 11, h=h_line / 2, txt=text.E_LEARNING_COMPLIANCE, fill=1, border=1,
+                               align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.THIS_IS_BHAM, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.DATA_PROTECT, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.CUSTOMER_SERVICE, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.EQUALITY, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.SAFE_GUARDING, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.H_AND_W_STRESS, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.PREVENT, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.FIRE_SAFETY, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.H_AND_S, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] / 11, h=h_line, txt=text.MODERN_SLAVERY, fill=1, border=1, align='C')
+
+        # TODO get specified month
+
+        hrt_data = [get_data_by_m_id_and_date(options.entities, 'HRT_{:02d}'.format(x), options.fym) for x in
+                    range(1, 11, 1)]
+
+        h += h_line
+        h_line = 6
+
+        self.__create_training_total_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_adult_social_care_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_cwg_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_digital_and_customer_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_education_and_skills_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_finance_and_governance_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_hr_and_od_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_inclusive_growth_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_neighbourhoods_table_row(x, h, graph_size[0], h_line, hrt_data)
+        h += h_line
+        self.__create_training_pip_table_row(x, h, graph_size[0], h_line, hrt_data)
+
+    def __setup_training_table_row(self, x, h, w, h_line, title, is_total=False):
+        self.report.set_xy(x, h)
+        if is_total:
+            self.__set_font(size=4, is_bold=True)
+        else:
+            self.__set_font(size=4)
+        self.report.cell(w / 11, h=h_line, txt=title, align='L', border=1)
+
+    def __create_training_total_table_row(self, x, h, w, h_line, data):
+        month = data[0].month[:-3]
+        self.__setup_training_table_row(x, h, w, h_line, text.MONTH_TOTAL.format(month), is_total=True)
+        for d in data:
+            self.__create_training_table_row(w, h_line, 0)
+
+    def __create_training_adult_social_care_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.adultSocialCare)
+
+    def __create_training_cwg_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.CWG)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.commonwealthGames)
+
+    def __create_training_digital_and_customer_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.digitalAndCustomerServices)
+
+    def __create_training_education_and_skills_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.educationAndSkills)
+
+    def __create_training_finance_and_governance_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.financeAndGovernance)
+
+    def __create_training_hr_and_od_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.HR_AND_OD)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.hrAndOrganizationDevelopment)
+
+    def __create_training_inclusive_growth_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.inclusiveGrowth)
+
+    def __create_training_neighbourhoods_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.NEIGHBOURHOODS)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.neighbourhoods)
+
+    def __create_training_pip_table_row(self, x, h, w, h_line, data):
+        self.__setup_training_table_row(x, h, w, h_line, text.PIP)
+        for d in data:
+            self.__create_training_table_row(w, h_line, d.partnershipsInsightAndPrevention)
+
+    def __create_training_table_row(self, w, h, value):
+        if value is None or (isinstance(value, str) and try_parse(value, is_float=True) is None):
+            value = 0
+        self.report.cell(w / 11, h, txt='{:.2f}%'.format(value), align='C', border=1)
+
+    def __do_compose_health_and_safety(self, h_orig, options):
+        graph_size = (220, 50)
+        h = h_orig
         self.report.set_xy(7.5, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        return h + graph_size[1]
+
+        h_sc = 4
+        self.report.set_xy(7.5, h)
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, h=h)
+        self.report.cell(graph_size[0] * 0.6, h=h_sc, txt=text.ACCIDENTS_AND_INCIDENTS, fill=1, border=1, align='C')
+        self.report.cell(graph_size[0] * 0.4, h=h_sc, txt=text.HSE_NOTIFIABLE, fill=1, border=1, align='C')
+        h += h_sc
+        self.__reset_colors()
+
+        self.__do_compose_accident_and_incident_table(8, h + 2, graph_size[0] * 0.6, options, 'HRSC_01')
+        self.__do_compose_hse_table(8 + graph_size[0] * 0.6, h + 2, graph_size[0] * 0.4, options, 'HRSC_02')
+
+        return h_orig + graph_size[1]
+
+    def __do_compose_hse_table(self, x, h, w, options, m_id):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w * 0.25, h=h_line, txt='Aug', align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='Sep', align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 3
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id)
+        h += h_line * 2
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_hse_table_row(x, h, w, h_line, options, m_id, is_total=True)
+
+    def __creat_hse_table_row(self, x, h, w, h_line, options, m_id, is_total=False):
+        self.report.set_xy(x, h)
+        # TODO if is_total is true calculate total values for last 2 months
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(variance), align='C')
+
+    def __do_compose_accident_and_incident_table(self, x, h, w, options, m_id):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        self.report.cell(w / 2 - 10, h=h_line)
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w / 9, h=h_line, txt='Aug', align='C')
+        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 3
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE, options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT, options,
+                                                       m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION,
+                                                       options, m_id)
+        h += h_line
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES, options,
+                                                       m_id)
+        h += h_line * 2
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line,
+                                                       '    {}'.format(text.TOTAL_ACCIDENTS_AND_INCIDENTS), options,
+                                                       m_id, is_total=True)
+
+    def __creat_accidents_and_incidents_table_row(self, x, h, w, h_line, title, options, m_id, is_total=False):
+        self.report.set_xy(x, h)
+        self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        # TODO if is_total is true calculate total values for last 2 months
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
 
     def __do_compose_workforce(self, h, options):
-        graph_size = (220, 30)
+        graph_size = (220, 33)
         self.report.set_xy(7.5, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
         self.report.image(options.images[WORKFORCE_EXPENDITURE], x=8, y=h + 0.5, w=graph_size[0] - 1,
@@ -189,10 +412,295 @@ class PDFReporter(RGReporterBase):
         self.__set_font(size=6)
         self.report.multi_cell(graph_size[0] - 1, 2.5, txt=comment, align='J')
 
-    def __do_compose_hr_workforce(self, h, options):
+    def __do_compose_hr_workforce(self, h_orig, options):
         graph_size = (405, 83)
+        h = h_orig
         self.report.set_xy(7.5, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
+
+        h_sc = 4
+
+        self.report.set_xy(7.5, h)
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, h=h)
+        self.report.cell(121, h=h_sc, txt=text.ABSENCE_DAYS_LOST, fill=1, border=1, align='C')
+        self.report.cell(180, h=h_sc, txt=text.WORKING_DAYS_LOST, fill=1, border=1, align='C')
+        self.report.cell(104, h=h_sc, txt=text.WORKING_HOURS_LOST, fill=1, border=1, align='C')
+
+        h += h_sc
+        self.__reset_colors()
+        h_add = self.__do_compose_absence_days_chart(8, h + 0.5, options, 'HRSC_04')
+        self.__do_compose_working_day_lost_table(9 + 121, h + 2, 180, options, 'HRSC_03')
+        self.__do_compose_working_hours_lost_table(9 + 121 + 180, h + 2, 104, options, 'HRSC_05')
+
+        h = h_add
+
+        self.report.set_xy(7.5, h)
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, h=h)
+        self.report.cell(121, h=h_sc, txt=text.INSTANCES_OF_ABSENCE_DAYS_LOST, fill=1, border=1, align='C')
+        self.report.cell(180, h=h_sc, txt=text.SICKNESS_ABSENCE_RATES, fill=1, border=1, align='C')
+        self.report.cell(104, h=h_sc, txt=text.TOP_6_REASONS_FOR_WORKING_DAYS_LOST, fill=1, border=1, align='C')
+
+        h += h_sc
+        self.__reset_colors()
+        self.__do_compose_instance_table(9, h + 2, 121, options)
+        self.__do_compose_sickness_rates_table(9 + 121, h + 2, 180, options)
+        self.__do_compose_top_reasons_table(9 + 121 + 180, h + 2, 104, options)
+
+        return h_orig + graph_size[1]
+
+    def __do_compose_working_hours_lost_table(self, x, h, w, options, m_id):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w * 0.25, h=h_line, txt='Aug', align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='Sep', align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 3
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+        h += h_line * 2
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_working_hours_lost_table_row(x, h, w, h_line, options, m_id)
+
+    def __creat_working_hours_lost_table_row(self, x, h, w, h_line, options, m_id, is_total=False):
+        self.report.set_xy(x, h)
+        # TODO if is_total is true calculate total values for last 2 months
+
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(variance), align='C')
+
+    def __do_compose_working_day_lost_table(self, x, h, w, options, m_id):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        self.report.cell(w / 2 - 10, h=h_line)
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w / 9, h=h_line, txt='Aug', align='C')
+        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 3
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.ANXIETY_STRESS_DEPRESSION, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION, options, m_id)
+        h += h_line
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES, options, m_id)
+        h += h_line * 2
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, '    {}'.format(text.TOTAL_CITY_WIDE), options, m_id,
+                                                is_total=True)
+
+    def __creat_working_day_lost_table_row(self, x, h, w, h_line, title, options, m_id, is_total=False):
+        self.report.set_xy(x, h)
+        self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        # TODO if is_total is true calculate total values for last 2 months
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
+
+    def __do_compose_top_reasons_table(self, x, h, w, options):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        self.report.cell(w / 2 - 10, h=h_line)
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w / 9, h=h_line, txt='Aug', align='C')
+        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 9, h=h_line, txt='%', align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 2.5
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.ANXIETY_STRESS_DEPRESSION, options, ['HRS_03'])
+        h += h_line
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.INJURY_FRACTURE, options, ['HRS_04'])
+        h += h_line
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.GASTROINTESTINAL_PROBLEMS, options, ['HRS_05'])
+        h += h_line
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.OTHER_MUSCULOSKELETAL, options, ['HRS_06'])
+        h += h_line
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.OTHER_KNOWN_CAUSES, options, ['HRS_07'])
+        h += h_line
+        self.__creat_top_reasons_table_row(x, h, w, h_line, text.BACK_PROBLEMS, options, ['HRS_08'])
+        h += h_line * 2
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_top_reasons_table_row(x, h, w, h_line, None, options,
+                                           ['HRS_03', 'HRS_04', 'HRS_05', 'HRS_06', 'HRS_07', 'HRS_08'], is_total=True)
+
+    def __creat_top_reasons_table_row(self, x, h, w, h_line, title, options, m_ids, is_total=False):
+        self.report.set_xy(x, h)
+        if is_total:
+            self.report.cell(w / 2 - 10, h=h_line)
+        else:
+            self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        # TODO show total values for last 2 months and percentage of the last month
+        # TODO if is_total is true get total values for last 2 months
+        a_month, b_month, percentage = 0, 0, 0
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(b_month), align='C')
+        if not is_total:
+            self.report.cell(w / 9, h=h_line, txt='{:.2f}%'.format(percentage), align='C')
+
+    def __do_compose_sickness_rates_table(self, x, h, w, options):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+        self.report.cell(w / 2 - 10, h=h_line)
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w / 9, h=h_line, txt='Aug', align='C')
+        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 2.5
+        self.__creat_sickness_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES, options)
+        h += h_line
+        self.__creat_sickness_table_row(x, h, w, h_line, text.COMMONWEALTH_GAMES, options)
+        h += h_line
+        self.__set_font(size=5, is_bold=True)
+        self.__creat_sickness_table_row(x, h, w, h_line, '    {}'.format(text.TOTAL_CITY_WIDE), options)
+
+    def __creat_sickness_table_row(self, x, h, w, h_line, title, options):
+        self.report.set_xy(x, h)
+        self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
+
+    def __do_compose_instance_table(self, x, h, w, options):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5, is_bold=True)
+        h_line = 4
+
+        self.report.cell(w / 2 - 10, h=h_line)
+        # TODO month will be provided as an CMD argument, thus use it to set month names in the columns
+        self.report.cell(w / 9, h=h_line, txt='Aug', align='C')
+        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w / 9, h=h_line, txt=text.VARIANCE, align='C')
+        h += h_line
+
+        self.__set_font(size=4)
+
+        h_line = 3
+        self.__creat_instance_table_row(x, h, w, h_line, text.NO_OF_CORE_WORKFORCE_FTE, options, m_ids=['HRA_05'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.TOTAL_FTE_SICKNESS_DAYS_LOST, options,
+                                        m_ids=['HRS_01', 'HRS_02'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.TOTAL_ABSENCES, options, m_ids=['HRA_01', 'HRA_04'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.ABSENCES_LESS_THAN_28_DAYS,
+                                        options, m_ids=['HRA_01', 'HRA_02', 'HRA_04'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.ABSENCES_MORE_THAN_29_DAYS,
+                                        options, m_ids=['HRA_01', 'HRA_02', 'HRA_04'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.LTS_ABSENCES_LONGER_THAN_6_MONTHS,
+                                        options, m_ids=['HRA_01', 'HRA_02', 'HRA_04'])
+        h += h_line
+        self.__creat_instance_table_row(x, h, w, h_line, text.STAFF_EXCEEDED_4_PERIODS_10_DAYS, options,
+                                        m_ids=['HRSC_06'])
+
+    def __creat_instance_table_row(self, x, h, w, h_line, title, options, m_ids=()):
+        self.report.set_xy(x, h)
+        self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        a_month, b_month = 0, 0
+        variance, dot = get_variance_and_dot(a_month, b_month)
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(a_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(b_month), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
+
+    def __do_compose_absence_days_chart(self, x, h, options, m_id):
+        graph_size = (120, 40)
+        fig, ax = plt.subplots(figsize=(14, 4))
+        plt.title(text.ABSENCE_DAYS_LOST_12_MONTHS_ROLLING, fontsize=16, wrap=True)
+
+        entity = get_entity_by_m_id(options.entities, m_id, has_measure=False)
+        freq = FREQ_MONTHLY
+        x_ticks, x_ticks_lbl = self.__get_ticks_and_target(freq, entity.data(), populate_target=False)
+        y_target = [x.bcc for x in entity.data()]
+
+        b_width = 0.4
+        ind = np.arange(12)
+        ax.bar(ind, y_target[:12], width=b_width, color=str(get_color(BLUE)))
+        ax.bar(ind + b_width, y_target[12:], width=b_width, color=str(get_color(AMBER)))
+
+        y_lim_min = int(math.ceil(min(y_target) / 10.0)) * 10 - 20
+        y_lim_max = int(math.ceil(max(y_target) / 10.0)) * 10 + 10
+        ax.set_ylim(y_lim_min, y_lim_max)
+        ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
+
+        ax.set_xticks(ind + b_width / 2)
+        ax.set_xticklabels(x_ticks_lbl[:12], rotation='horizontal')
+
+        ax.autoscale_view()
+
+        f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(m_id))
+        plt.savefig(f_path)
+        self.report.image(f_path, x=x, y=h, w=graph_size[0], h=graph_size[1], type='', link='')
         return h + graph_size[1]
 
     def __do_compose_financial_charts(self, h, options):
@@ -503,7 +1011,8 @@ class PDFReporter(RGReporterBase):
         color = get_color(BLACK)
         self.report.set_text_color(color.r, color.g, color.b)
 
-    def __create_scorecard_top(self, add_page=False, h=98.0, add_first=True, add_second=True, w=405, x=7.5):
+    def __create_scorecard_top(self, add_page=False, h=98.0, add_first=True, add_second=True, add_third=False, w=405,
+                               x=7.5):
         self.report.set_font(REPORT_FONT, 'B', 8)
         if add_page:
             self.report.add_page()
@@ -518,10 +1027,19 @@ class PDFReporter(RGReporterBase):
             h += 8.5
 
         if add_second:
-            self.report.set_xy(7.5, h)
+            self.report.set_xy(x, h)
             color = get_color(AQUA)
             self.report.set_fill_color(color.r, color.g, color.b)
             color = get_color(WHITE)
+            self.report.set_text_color(color.r, color.g, color.b)
+
+        if add_third:
+            self.report.set_font(REPORT_FONT, 'B', 5)
+
+            self.report.set_xy(x, h)
+            color = get_color(LIGHT_AQUA)
+            self.report.set_fill_color(color.r, color.g, color.b)
+            color = get_color(BLACK)
             self.report.set_text_color(color.r, color.g, color.b)
 
         return h
@@ -779,19 +1297,22 @@ class PDFReporter(RGReporterBase):
             ax.bar(data[0], data[1], color=str(color), width=width, align='center')
 
     @staticmethod
-    def __get_ticks_and_target(freq, data_list):
+    def __get_ticks_and_target(freq, data_list, populate_target=True):
+        y_target = None
         if freq == FREQ_ANNUAL:
             x_ticks = sorted(set([try_parse(x.year, is_int=True) for x in data_list]))
             x_ticks_lbl = sorted(set([x.f_year for x in data_list]))
 
-            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+            if populate_target:
+                y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         elif freq == FREQ_QUARTER:
             x_ticks = sorted(set([try_parse(x.yearQuarter, is_int=True) for x in data_list]))
             # create two list of quarters for last & current fiscal years
             x_ticks_lbl = sorted(set([x.quarter for x in data_list]))
             x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
 
-            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+            if populate_target:
+                y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         else:
             x_ticks = [try_parse(x.yearMonth, is_int=True) for x in data_list]
             # get month abbreviations
@@ -803,9 +1324,13 @@ class PDFReporter(RGReporterBase):
             x_ticks_lbl = list((x_ticks_lbl.values()))
             x_ticks_lbl = x_ticks_lbl + x_ticks_lbl
 
-            y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
+            if populate_target:
+                y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
 
-        return [str(x) for x in x_ticks], x_ticks_lbl, y_target
+        if populate_target:
+            return [str(x) for x in x_ticks], x_ticks_lbl, y_target
+        else:
+            return [str(x) for x in x_ticks], x_ticks_lbl
 
     @staticmethod
     def __get_freq(freq):

@@ -742,18 +742,15 @@ class PDFReporter(RGReporterBase):
                 dot = format_value(recent_data.dotFromPreviousQuarter)
             else:
                 dot = format_value(recent_data.dotFromPreviousMonth)
+            dot = get_text_dot(dot)
             result = format_value(recent_data.result, d_format)
             target = format_value(recent_data.target, d_format)
             baseline = format_value(entity.get_measure(recent_data).baseline, d_format)
 
-        text_dot = " "
-        if ~(dot in ["p", "q", "r", "s", "u"]):
-            text_dot = dot
-
         self.__set_font(is_bold=True, size=5)
         self.report.cell(14, 6, text.DOT, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
-        self.report.cell(15, 6, text_dot, border='R', ln=2, align='C')
+        self.report.cell(15, 6, dot, border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
@@ -1103,10 +1100,10 @@ class PDFReporter(RGReporterBase):
         self.__compose_report_comment(entity.data())
 
         self.report.set_xy(left_top[0] + 95, left_top[1] + 5)
-        self.__compose_benchmark_tbl(entity.data(), d_format)
+        self.__compose_benchmark_tbl(entity, d_format, fym)
 
         self.__add_empty_line()
-        self.__compose_current_pos_tbl(entity, frequency, d_format)
+        self.__compose_current_pos_tbl(entity, frequency, d_format, fym)
 
         self.__add_empty_line()
         self.__compose_gauge_chart(entity.data())
@@ -1116,11 +1113,11 @@ class PDFReporter(RGReporterBase):
         self.report.set_font(REPORT_FONT, '', 5.5)
         self.report.multi_cell(w, 2.5, r_comment, 0, 'J')
 
-    def __compose_benchmark_tbl(self, data_list, d_format):
-        data_with_bmk_list = get_bmk(data_list)
+    def __compose_benchmark_tbl(self, entity, d_format, fym):
+        data_with_bmk_list = get_bmk(get_data_by_date(entity.data(), fym))
         if len(data_with_bmk_list) == 0:
             nat_avg = text.NO_BENCHMARK
-            b_at_bmk, quartile, bmk_y, bmk_g = '', '', '', ''
+            b_at_bmk, quartile, bmk_y, bmk_g, pref_dot = '', '', '', '', ''
         else:
             recent_data = data_with_bmk_list[len(data_with_bmk_list) - 1]
             nat_avg = format_value(recent_data.benchmarkResult, d_format)
@@ -1134,12 +1131,14 @@ class PDFReporter(RGReporterBase):
             bmk_y = '{} {}'.format(text.BENCHMARK, format_value(recent_data.yearOfBenchmarkData))
             bmk_g = format_value(recent_data.benchmarkGroup)
 
+            pref_dot = get_text_dot(entity.measure_cfy.pref_dot)
+
         self.__set_font(is_bold=True, size=8)
         self.report.cell(37, 6, text.BENCHMARK, 1, 2, 'C')
 
         self.__set_font(size=7)
         self.report.cell(17, 6, text.PREFERRED_DOT, border='L', ln=0, align='C')
-        self.report.cell(20, 6, ' ', border='R', ln=2, align='C')
+        self.report.cell(20, 6, pref_dot, border='R', ln=2, align='C')
         self.report.cell(-17)
 
         self.report.cell(17, 6, text.NATIONAL_AVERAGE, border='L', ln=0, align='C')
@@ -1168,33 +1167,31 @@ class PDFReporter(RGReporterBase):
         self.__set_font(size=6)
         self.report.multi_cell(37, 5, '{} {}'.format(bmk_y, bmk_g), ln=2, border='LRB', align='C')
 
-    def __compose_current_pos_tbl(self, entity, frequency, d_format):
-        data_current_pos_list = get_current_pos(entity.data())
+    def __compose_current_pos_tbl(self, entity, frequency, d_format, fym):
+        data_current_pos_list = get_current_pos(get_data_by_date(entity.data(), fym))
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
             fill_bool = False
             baseline = NOT_APPLICABLE
         else:
-            recent_data = data_current_pos_list[len(data_current_pos_list) - 1]
+            month_data = data_current_pos_list[len(data_current_pos_list) - 1]
             if FREQ_ANNUAL in frequency:
-                dot = format_value(recent_data.dotFromSamePeriodLastYear)
+                dot = format_value(month_data.dotFromSamePeriodLastYear)
             elif FREQ_QUARTER in frequency:
-                dot = format_value(recent_data.dotFromPreviousQuarter)
+                dot = format_value(month_data.dotFromPreviousQuarter)
             else:
-                dot = format_value(recent_data.dotFromPreviousMonth)
-            result = format_value(recent_data.result, d_format)
-            target = format_value(recent_data.target, d_format)
-            fill_bool = recent_data.status.upper() == text.PROVISIONAL
-            baseline = format_value(entity.get_measure(recent_data).baseline, d_format)
+                dot = format_value(month_data.dotFromPreviousMonth)
+            dot = get_text_dot(dot)
+            result = format_value(month_data.result, d_format)
+            target = format_value(month_data.target, d_format)
+            fill_bool = month_data.status.upper() == text.PROVISIONAL
+            baseline = format_value(entity.get_measure(month_data).baseline, d_format)
         self.__set_font(is_bold=True, size=8)
         self.report.cell(37, 6, text.CURRENT_POSITION, 1, 2, 'C')
         self.__set_font(is_bold=False, size=7)
 
         self.report.cell(17, 6, text.DOT, border='L', ln=0, align='C')
-        text_dot = " "
-        if ~(dot in ["p", "q", "r", "s", "u"]):
-            text_dot = dot
-        self.report.cell(20, 6, text_dot, border='R', ln=2, align='C')
+        self.report.cell(20, 6, dot, border='R', ln=2, align='C')
         self.report.cell(-17)
 
         self.report.set_fill_color(r=255, g=255, b=0)

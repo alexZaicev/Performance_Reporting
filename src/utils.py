@@ -407,3 +407,19 @@ def filter_data_by_fym(data, fym):
             if stamp is not None and fym >= stamp:
                 result.append(d)
     return result
+
+
+def get_data_by_date(data, fym):
+    result = list()
+    if data is not None and fym is not None:
+        for d in data:
+            if str(d.yearMonth) == str(fym):
+                result.append(d)
+    return result
+
+
+def get_text_dot(dot):
+    if dot is not None:
+        if ~(dot in ["p", "q", "r", "s", "u"]):
+            return dot
+    return ''

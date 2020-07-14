@@ -47,11 +47,11 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        # self.__do_compose_cpm_scorecard(options)
-        # self.__do_compose_grid_charts(options)
-        # self.__do_compose_sdm_scorecard(options)
+        self.__do_compose_cpm_scorecard(options)
+        self.__do_compose_grid_charts(options)
+        self.__do_compose_sdm_scorecard(options)
         self.__do_compose_financial_hr_scorecard(options)
-        # self.__do_compose_relationship_effectiveness_scorecard(options)
+        self.__do_compose_relationship_effectiveness_scorecard(options)
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)

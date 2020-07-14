@@ -13,28 +13,36 @@ def timestamp():
     return '{:02d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
-def get_prev_fiscal_month():
-    now = datetime.now()
-    month = now.month - 1
-    if month == 0:
-        month = 12
-
-    # convert ordinary to fiscal month
-    FM = {
-        1: 4,
-        2: 5,
-        3: 6,
-        4: 7,
-        5: 8,
-        6: 9,
-        7: 10,
-        8: 11,
-        9: 12,
-        10: 1,
-        11: 2,
-        12: 3
-    }
-    return FM[month]
+def get_prev_fiscal_month(month=None, fm=None):
+    if fm is None:
+        FM = {
+            1: 4,
+            2: 5,
+            3: 6,
+            4: 7,
+            5: 8,
+            6: 9,
+            7: 10,
+            8: 11,
+            9: 12,
+            10: 1,
+            11: 2,
+            12: 3
+        }
+        if month is None:
+            now = datetime.now()
+            month = now.month - 1
+        else:
+            month -= 1
+        if month == 0:
+            month = 12
+        # convert ordinary to fiscal month
+        return FM[month]
+    else:
+        fm -= 1
+        if fm == 0:
+            fm = 12
+        return fm
 
 
 def get_dir_path(name=ROOT):
@@ -423,3 +431,26 @@ def get_text_dot(dot):
         if ~(dot in ["p", "q", "r", "s", "u"]):
             return dot
     return ''
+
+
+def get_prev_and_current_month_data(options, m_id):
+    d_prev, d_current = None, None
+    # set current & previous fiscal months IDs
+    m_current = try_parse(str(options.fym)[-2:], is_int=True)
+    m_previous = get_prev_fiscal_month(fm=m_current)
+    # get entity by measure ID
+    entity = get_entity_by_m_id(options.entities, m_id, has_measure=False)
+    if entity is not None:
+        d_prev = get_data_by_date(entity.data(), '{}{:02d}'.format(str(options.fym)[:6], m_previous))
+        d_current = get_data_by_date(entity.data(), options.fym)
+        if d_prev is not None and len(d_prev) > 0:
+            d_prev = d_prev[0]
+        else:
+            # TODO handle data that was not found
+            pass
+        if d_current is not None and len(d_current) > 0:
+            d_current = d_current[0]
+        else:
+            # TODO handle data that was not found
+            pass
+    return d_prev, d_current

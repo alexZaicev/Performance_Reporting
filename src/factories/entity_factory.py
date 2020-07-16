@@ -1,6 +1,6 @@
-from constants import SSG, PMT_ADDITIONAL, CPM, SDM, HR_SCORECARD, HR_ABSENCES, HR_TRAINING, HR_SICKNESS
+from constants import SSG, PMT_ADDITIONAL, CPM, SDM, HR_SCORECARD, HR_ABSENCES, HR_TRAINING, HR_SICKNESS, DCS_COMPLAINTS
 from models.entities import CpmEntity, SdmEntity, SsgEntity, PmtAdditionalEntity, HrScorecardEntity, HrAbsencesEntity, \
-    HrSicknessEntity, HrTrainingEntity
+    HrSicknessEntity, HrTrainingEntity, DcsComplaintsEntity
 from models.errors import RGError
 
 
@@ -35,7 +35,8 @@ class RGEntityFactory(object):
             HR_SCORECARD: RGEntityFactory.__create_hr_scorecard_entity,
             HR_ABSENCES: RGEntityFactory.__create_hr_absences_entity,
             HR_SICKNESS: RGEntityFactory.__create_hr_sickness_entity,
-            HR_TRAINING: RGEntityFactory.__create_hr_training_entity
+            HR_TRAINING: RGEntityFactory.__create_hr_training_entity,
+            DCS_COMPLAINTS: RGEntityFactory.__create_dcs_complaints_entity
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -74,3 +75,7 @@ class RGEntityFactory(object):
     @staticmethod
     def __create_hr_training_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
         return HrTrainingEntity(data_lfy=data_lfy, data_cfy=data_cfy)
+
+    @staticmethod
+    def __create_dcs_complaints_entity(data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):
+        return DcsComplaintsEntity(data_lfy=data_lfy, data_cfy=data_cfy)

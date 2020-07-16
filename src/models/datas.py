@@ -47,6 +47,15 @@ class HrDataModel(RGModelBase):
         self.year_month = get_val(df, YEAR_MONTH)
 
 
+class DCSDataModel(RGModelBase):
+
+    def __init__(self, m_type=None, df=None):
+        RGModelBase.__init__(self, m_type=m_type, df=df)
+        self.data_format = get_val(df, DATA_FORMAT)
+        self.year = get_val(df, YEAR)
+        self.year_month = get_val(df, YEAR_MONTH)
+
+
 class CpmData(RGDataModel):
 
     def __init__(self, m_type=CPM, df=None):
@@ -131,3 +140,21 @@ class HrTrainingData(HrDataModel):
         self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL, is_float=True)
         self.date = get_val(df, DATE_OF_DATA, is_date=True)
         self.cwg = get_val(df, COMMONWEALTH_GAMES, is_float=True)
+
+
+class DcsComplaintsData(DCSDataModel):
+
+    def __init__(self, m_type=DCS_COMPLAINTS, df=None):
+        DCSDataModel.__init__(self, m_type=m_type, df=df)
+        self.adult_social_care = get_val(df, ADULTS_SOCIAL_CARE, is_float=True)
+        self.childrens_trust = get_val(df, BIRMINGHAM_CHILDRENS_TRUST, is_float=True)
+        self.education_and_skills = get_val(df, EDUCATION_AND_SKILLS, is_float=True)
+        self.inclusive_growth = get_val(df, INCLUSIVE_GROWTH, is_float=True)
+        self.finance_and_governance = get_val(df, FINANCE_AND_GOVERNANCE, is_float=True)
+        self.neighbourhoods = get_val(df, NEIGHBOURHOODS, is_float=True)
+        self.pip = get_val(df, PARTNERSHIPS_INSIGHT_AND_PREVENTION, is_float=True)
+        self.digital_and_customer_services = get_val(df, DIGITAL_AND_CUSTOMER_SERVICES, is_float=True)
+        self.hr_and_od = get_val(df, HR_AND_ORGANISATION_DEVELOPMENT, is_float=True)
+        self.cwg = get_val(df, COMMONWEALTH_GAMES, is_float=True)
+        self.unassigned = get_val(df, UNASSIGNED, is_float=True)
+        self.bcc = get_val(df, BIRMINGHAM_CITY_COUNCIL, is_float=True)

@@ -1,6 +1,6 @@
 from abc import ABC
 
-from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES
+from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES, DCS_COMPLAINTS
 
 
 class RGEntityBase(ABC):
@@ -73,4 +73,10 @@ class HrSicknessEntity(RGEntityBase):
 class HrTrainingEntity(RGEntityBase):
 
     def __init__(self, m_type=HR_TRAINING, data_lfy=None, data_cfy=None):
+        RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)
+
+
+class DcsComplaintsEntity(RGEntityBase):
+
+    def __init__(self, m_type=DCS_COMPLAINTS, data_lfy=None, data_cfy=None):
         RGEntityBase.__init__(self, m_type=m_type, data_lfy=data_lfy, data_cfy=data_cfy)

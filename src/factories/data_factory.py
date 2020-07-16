@@ -1,6 +1,6 @@
-from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES
+from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES, DCS_COMPLAINTS
 from models.datas import CpmData, SdmData, SsgData, PmtAdditionalData, HrScorecardData, HrAbsencesData, HrTrainingData, \
-    HrSicknessData
+    HrSicknessData, DcsComplaintsData
 from models.errors import RGError
 
 
@@ -32,7 +32,8 @@ class RGDataFactory(object):
             HR_SCORECARD: RGDataFactory.__create_hr_scorecard_data,
             HR_ABSENCES: RGDataFactory.__create_hr_absences_data,
             HR_SICKNESS: RGDataFactory.__create_hr_sickness_data,
-            HR_TRAINING: RGDataFactory.__create_hr_training_data
+            HR_TRAINING: RGDataFactory.__create_hr_training_data,
+            DCS_COMPLAINTS: RGDataFactory.__create_dcs_complaints_data
         }
         try:
             fun = __TYPE_CREATION_MAP[m_type]
@@ -71,3 +72,7 @@ class RGDataFactory(object):
     @staticmethod
     def __create_hr_training_data(df=None):
         return HrTrainingData(df=df)
+
+    @staticmethod
+    def __create_dcs_complaints_data(df=None):
+        return DcsComplaintsData(df=df)

@@ -1,5 +1,6 @@
 import logging
 import re
+import os
 from datetime import datetime
 from os.path import dirname, abspath, join
 
@@ -48,7 +49,7 @@ def get_prev_fiscal_month(month=None, fm=None):
 
 
 def get_dir_path(name=ROOT):
-    base = dirname(abspath(__file__)).replace('\\src', '')
+    base = dirname(abspath(__file__)).replace('{}src'.format(os.path.sep), '')
     DIR_PATH = {
         ROOT: base,
         RESOURCES: join(base, 'resources'),
@@ -133,7 +134,7 @@ def get_lfy_prefix(cfy=None):
 
 def parse_columns(column):
     val = str(column).upper().replace('\n', ' ').replace('\r', ' ').replace('\\', ' ').replace('/', ' ').replace(
-        '-', ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ')
+        '-', ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ').replace('`', '').replace("'", '')
     val = re.sub(' +', '_', val)
     if val.endswith('_'):
         val = val[:-1]

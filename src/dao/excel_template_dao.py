@@ -55,6 +55,8 @@ class ExcelTemplateDao(RGDaoBase):
         df_hr_absences = pd.DataFrame()
         df_hr_sickness = pd.DataFrame()
         df_hr_training = pd.DataFrame()
+        # used by DCS template
+        df_dcs_complaints = pd.DataFrame()
 
         templates = self.__validate_and_clean_templates(self.get_templates())
         for name in templates.keys():
@@ -120,6 +122,22 @@ class ExcelTemplateDao(RGDaoBase):
                     except XLRDError as e:
                         logging.debug('Template does not contain HR specific data [{}]'.format(template, str(e)))
 
+                    # try parse DCS data
+                    try:
+                        dict_template = pd.read_excel(template,
+                                                      sheet_name=[DCS_COMPLAINTS_DATA],
+                                                      encoding='utf-8')
+
+                        temp = dict_template[DCS_COMPLAINTS_DATA]
+                        temp.columns = map(parse_columns, temp.columns)
+                        df_dcs_complaints = df_dcs_complaints.append(temp)
+
+                        df_dcs_complaints.loc[:, YEAR] = df_dcs_complaints.loc[:, FISCAL_YEAR].str.replace("-", "")
+                        df_dcs_complaints.loc[:, YEAR_MONTH] = df_dcs_complaints.loc[:, FISCAL_YEAR] \
+                            .str.replace("-", "").str.cat(df_dcs_complaints.loc[:, MONTH].str[1:3])
+                    except XLRDError as e:
+                        logging.debug('Template does not contain DCS specific data [{}]'.format(template, str(e)))
+
                 except XLRDError as e:
                     logging.debug('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
 
@@ -128,7 +146,8 @@ class ExcelTemplateDao(RGDaoBase):
                     temp.columns = map(parse_columns, temp.columns)
                     df_pmt = df_pmt.append(temp)
 
-        return tuple([df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training])
+        return tuple([df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training,
+                      df_dcs_complaints])
 
     def __validate_and_clean_templates(self, templates=None):
         if templates is None:
@@ -145,7 +164,7 @@ class ExcelTemplateDao(RGDaoBase):
         return templates
 
     def __create_measures(self):
-        df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training = self.get_data_frames()
+        df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training, df_dcs_complaints = self.get_data_frames()
         if df_cym is None:
             raise RGError('Unable to create measures from invalid data frame object [{}]'.format(df_cym))
         self.__entities = list()
@@ -194,6 +213,7 @@ class ExcelTemplateDao(RGDaoBase):
         self.__parse_abnormal_data(df_hr_absences, HR_ABSENCES)
         self.__parse_abnormal_data(df_hr_sickness, HR_SICKNESS)
         self.__parse_abnormal_data(df_hr_training, HR_TRAINING)
+        self.__parse_abnormal_data(df_dcs_complaints, DCS_COMPLAINTS)
 
         logging.debug('[{}] entities has been parsed'.format(len(self.__entities)))
 

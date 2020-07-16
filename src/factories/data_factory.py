@@ -38,7 +38,7 @@ class RGDataFactory(object):
             fun = __TYPE_CREATION_MAP[m_type]
             return fun(df=df)
         except AttributeError:
-            raise RGError("Unknown measure type {}".format(m_type))
+            raise RGError("Unknown data type {}".format(m_type))
 
     @staticmethod
     def __create_cpm_data(df=None):

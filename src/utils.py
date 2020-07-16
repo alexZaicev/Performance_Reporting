@@ -3,6 +3,8 @@ import re
 from datetime import datetime
 from os.path import dirname, abspath, join
 
+from pandas import NaT, to_datetime
+
 from constants import *
 from models.errors import RGError
 from text import NOT_APPLICABLE, PERCENTAGE, NUMBER
@@ -53,7 +55,8 @@ def get_dir_path(name=ROOT):
         TEMP: join(base, 'tmp'),
         LOG: join(base, 'log'),
         TEMPLATES: join(base, 'templates'),
-        OUTPUT: join(base, 'output')
+        OUTPUT: join(base, 'output'),
+        RESOURCES_FONTS: join(base, 'resources', 'fonts')
     }
     try:
         return DIR_PATH[name]
@@ -64,7 +67,7 @@ def get_dir_path(name=ROOT):
 
 def get_font(name=DEJAVU_SANS):
     if name is not None and len(name) > 0:
-        return join(get_dir_path(RESOURCES), 'fonts', '{}.ttf'.format(name))
+        return join(get_dir_path(RESOURCES_FONTS), '{}.ttf'.format(name))
     return None
 
 
@@ -95,10 +98,12 @@ def try_parse(val, is_int=False, is_float=False):
     try:
         val = str(val)
         if is_int:
+            if len(val.split('.')) == 2:
+                return int(float(val))
             return int(val)
         elif is_float:
             return float(val)
-    except ValueError:
+    except ValueError as ex:
         return None
 
 
@@ -138,13 +143,20 @@ def parse_columns(column):
     return val
 
 
-def get_val(df, key):
+def get_val(df, key, is_int=False, is_float=False, is_str=False, is_date=False):
     try:
         val = df[key]
-        if val is None or (str(val) == 'nan'):
-            return ''
+        if (val is None) or (str(val) == 'nan') or (len(str(val).replace(' ', '')) == 0) or isinstance(val, type(NaT)):
+            if is_int:
+                return 0
+            elif is_float:
+                return 0.0
+            elif is_str or is_date:
+                return ''
         else:
-            if isinstance(val, str):
+            if is_date:
+                val = to_datetime(val).strftime('%d/%m/%Y')
+            elif isinstance(val, str):
                 try:
                     temp = parse_unicode_str(val).encode(encoding='utf-8')
                     val = temp.decode(encoding=REPORT_ENCODING, errors='strict')
@@ -159,9 +171,22 @@ def get_val(df, key):
 
 
 def parse_unicode_str(val):
-    val = val.replace('\u0028', '\u007b').replace('\u0029', '\u007d')
     if REPORT_ENCODING.lower() == 'utf-8':
-        return val
+        # TODO resolve issue with parentheses not displaying properly in PDF report
+        val = val.replace('\uff08', '\u0028').replace('\uff09', '\u0029') \
+            .replace('\u2768', '\u0028').replace('\u2769', '\u0029') \
+            .replace('\u276a', '\u0028').replace('\u276b', '\u0029') \
+            .replace('\u2772', '\u0028').replace('\u2773', '\u0029') \
+            .replace('\uff5f', '\u0028').replace('\uff60', '\u0029') \
+            .replace('\ufe59', '\u0028').replace('\ufe5a', '\u0029') \
+            .replace('\u275d', '\u0022').replace('\u275e', '\u0022') \
+            .replace('\u275b', '\u0027').replace('\u275c', '\u0027') \
+            .replace('\u201c', '\u0022').replace('\u201d', '\u0022') \
+            .replace('\u2018', '\u0027').replace('\u2019', '\u0027') \
+            .replace('\u2039', '\u003c').replace('\u203a', '\u003e') \
+            .replace('\u2039', '\u003c').replace('\u203a', '\u003e') \
+            .replace('\u00ab', '\u003c').replace('\u00bb', '\u003c')
+        return val.replace('\u0028', '{').replace('\u0029', '}')
     return val \
         .replace('\u2018', '\u0027').replace('\u2019', '\u0027') \
         .replace('\u201a', '\u0027').replace('\u201b', '\u0027') \
@@ -169,14 +194,16 @@ def parse_unicode_str(val):
         .replace('\u201e', '\u0022').replace('\u201F', '\u0022') \
         .replace('\u25b2', '\u005e').replace('\u25bc', '\u005e') \
         .replace('\u25bc', '\u0021\u005e').replace('\u25bd', '\u0021\u005e') \
-        .replace('\u2015', '\u002d').replace('\u2014', '\u002d').replace('\u2013', '\u002d')
+        .replace('\u2015', '\u002d').replace('\u2014', '\u002d') \
+        .replace('\u2013', '\u002d')
 
 
 def get_report_comment(data_list):
-    if data_list is not None:
+    if data_list is not None and len(data_list) > 0:
+        data_list.sort(key=lambda x: x.year_month, reverse=True)
         for data in data_list:
-            if data.reportComments is not None and len(data.reportComments) > 0:
-                return data.reportComments
+            if data.r_comments is not None and len(data.r_comments) > 0:
+                return data.r_comments
     return ''
 
 
@@ -184,7 +211,7 @@ def get_bmk(data_list):
     result = list()
     if data_list is not None:
         for data in data_list:
-            if data.benchmarkResult is not None and not isinstance(data.benchmarkResult, str):
+            if data.bck_result is not None and not isinstance(data.bck_result, str):
                 result.append(data)
     return result
 
@@ -229,7 +256,7 @@ def get_qp(data_list):
     result = list()
     if data_list is not None:
         for data in data_list:
-            if try_parse(data.quartileProjection) is not None:
+            if data.quartile_projection is not None:
                 result.append(data)
     return result
 
@@ -241,8 +268,8 @@ def get_target_per_given_frequency(data_list, frequency, freq_num):
             d_fn = list()
             for data in data_list:
                 if (frequency == FREQ_ANNUAL and data.year == str(fn)) or \
-                        (frequency == FREQ_QUARTER and data.yearQuarter == str(fn)) or \
-                        (frequency == FREQ_MONTHLY and data.yearMonth == str(fn)):
+                        (frequency == FREQ_QUARTER and data.year_quarter == str(fn)) or \
+                        (frequency == FREQ_MONTHLY and data.year_month == str(fn)):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.target, is_float=True) is not None]
             if len(d_fn) == 0:
@@ -259,8 +286,8 @@ def get_results_per_given_frequency(data_list, frequency, freq_num):
             d_fn = list()
             for data in data_list:
                 if (frequency == FREQ_ANNUAL and data.year == fn) or \
-                        (frequency == FREQ_QUARTER and data.yearQuarter == fn) or \
-                        (frequency == FREQ_MONTHLY and data.yearMonth == fn):
+                        (frequency == FREQ_QUARTER and data.year_quarter == fn) or \
+                        (frequency == FREQ_MONTHLY and data.year_month == fn):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.result, is_float=True) is not None]
             if len(d_fn) == 0:
@@ -277,8 +304,8 @@ def get_performance_per_given_frequency(data_list, frequency, freq_num):
             d_fn = list()
             for data in data_list:
                 if (frequency == FREQ_ANNUAL and data.year == fn) or \
-                        (frequency == FREQ_QUARTER and data.yearQuarter == fn) or \
-                        (frequency == FREQ_MONTHLY and data.yearMonth == fn):
+                        (frequency == FREQ_QUARTER and data.year_quarter == fn) or \
+                        (frequency == FREQ_MONTHLY and data.year_month == fn):
                     d_fn.append(data)
             d_fn = [x for x in d_fn if try_parse(x.result, is_float=True) is not None]
             if len(d_fn) == 0:
@@ -346,8 +373,11 @@ def sort_entities_by_outcome(entities, outcome):
     result = list()
     if entities is not None and outcome is not None:
         for e in entities:
-            if isinstance(e.measure_cfy.outcome, str) and outcome in e.measure_cfy.outcome:
-                result.append(e)
+            if e.measure_cfy.outcome is not None and isinstance(e.measure_cfy.outcome, str):
+                m_outcome = e.measure_cfy.outcome.upper().replace(',', ' ').rstrip()
+                m_outcome = re.sub(' +', '_', m_outcome)
+                if m_outcome == outcome:
+                    result.append(e)
     return result
 
 
@@ -391,7 +421,7 @@ def get_data_by_m_id_and_date(entities, m_id, fym):
         if e is None:
             return None
         for d in e.data():
-            if str(d.yearMonth) == str(fym):
+            if str(d.year_month) == str(fym):
                 return d
     return None
 
@@ -411,7 +441,7 @@ def filter_data_by_fym(data, fym):
     result = list()
     if data is not None and fym is not None:
         for d in data:
-            stamp = try_parse(d.yearMonth, is_int=True)
+            stamp = try_parse(d.year_month, is_int=True)
             if stamp is not None and fym >= stamp:
                 result.append(d)
     return result
@@ -421,7 +451,7 @@ def get_data_by_date(data, fym):
     result = list()
     if data is not None and fym is not None:
         for d in data:
-            if str(d.yearMonth) == str(fym):
+            if str(d.year_month) == str(fym):
                 result.append(d)
     return result
 
@@ -454,3 +484,33 @@ def get_prev_and_current_month_data(options, m_id):
             # TODO handle data that was not found
             pass
     return d_prev, d_current
+
+
+def get_outcome_priority(outcome):
+    if outcome is not None and len(outcome) > 0:
+        outcome = outcome.upper().replace(',', ' ')
+        outcome = re.sub(' +', '_', outcome)
+        if outcome == OUTCOME_LEARN_WORK_INVEST:
+            return 1
+        elif outcome == OUTCOME_GROW_UP:
+            return 2
+        elif outcome == OUTCOME_AGE_WELL:
+            return 3
+        elif outcome == OUTCOME_LIVE_IN:
+            return 4
+        elif outcome == OUTCOME_CWG:
+            return 5
+    return 9999
+
+
+def parse_comment(text):
+    if text is not None:
+        if len(text) > 1950:
+            text = '{}...'.format(text[:1950])
+        elif len(text.split('\n')) > 18:
+            lines = text.split('\n')
+            new_text = ''
+            for i in range(0, 18, 1):
+                new_text += '{}\n'.format(lines[i])
+            text = new_text
+    return text

@@ -44,7 +44,7 @@ CPM = 'CPM'
 SDM = 'SDM'
 SSG = 'SSG'
 # used by PMT related templates
-PMT_ADDITIONAL = 'UNKNOWN'
+PMT_ADDITIONAL = 'PMT_ADDITIONAL'
 # used by HR related templates
 HR_SCORECARD = 'HR_SCORECARD'
 HR_ABSENCES = 'HR_ABSENCES'
@@ -141,19 +141,19 @@ FREQ_QUARTER = 'Q'
 FREQ_MONTHLY = 'M'
 DOTS = ["p", "q", "r", "s", "u"]
 FISCAL_MONTHS = {
-        1: 'APR',
-        2: 'MAY',
-        3: 'JUN',
-        4: 'JUL',
-        5: 'AUG',
-        6: 'SEP',
-        7: 'OCT',
-        8: 'NOV',
-        9: 'DEC',
-        10: 'JAN',
-        11: 'FEB',
-        12: 'MAR'
-    }
+    1: 'APR',
+    2: 'MAY',
+    3: 'JUN',
+    4: 'JUL',
+    5: 'AUG',
+    6: 'SEP',
+    7: 'OCT',
+    8: 'NOV',
+    9: 'DEC',
+    10: 'JAN',
+    11: 'FEB',
+    12: 'MAR'
+}
 QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4']
 
 PERF_BLUE = 'BLUE'
@@ -165,12 +165,12 @@ PERF_AWAITING = 'AWAITING'
 PERF_TREND = 'TREND'
 PERF_PREV_REPORTED = 'PREVIOUSLY_REPORTED'
 
-OUTCOME_LEAN_WORK_INVEST = 'Birmingham is an entrepreneurial city to learn, work and invest in'
-OUTCOME_GROW_UP = 'Birmingham is an aspirational city to grow up in'
-OUTCOME_CWG = 'Birmingham residents gain the maximum benefit from hosting the Commonwealth Games'
-OUTCOME_AGE_WELL = 'Birmingham is a fulfilling city to age well in'
-OUTCOME_SSG = 'Support Services and Governance'
-OUTCOME_LIVE_IN = 'Birmingham is a great city to live in'
+OUTCOME_LEARN_WORK_INVEST = 'BIRMINGHAM_IS_AN_ENTREPRENEURIAL_CITY_TO_LEARN_WORK_AND_INVEST_IN'
+OUTCOME_GROW_UP = 'BIRMINGHAM_IS_AN_ASPIRATIONAL_CITY_TO_GROW_UP_IN'
+OUTCOME_CWG = 'BIRMINGHAM_RESIDENTS_GAIN_THE_MAXIMUM_BENEFIT_FROM_HOSTING_THE_COMMONWEALTH_GAMES'
+OUTCOME_AGE_WELL = 'BIRMINGHAM_IS_A_FULFILLING_CITY_TO_AGE_WELL_IN'
+OUTCOME_SSG = 'SUPPORT_SERVICES_AND_GOVERNANCE'
+OUTCOME_LIVE_IN = 'BIRMINGHAM_IS_A_GREAT_CITY_TO_LIVE_IN'
 
 ROOT = 'ROOT'
 TEMP = 'TEMP'
@@ -178,6 +178,7 @@ RESOURCES = 'RESOURCES'
 LOG = 'LOG'
 TEMPLATES = 'TEMPLATES'
 OUTPUT = 'OUTPUT'
+RESOURCES_FONTS = 'RESOURCES_FONTS'
 
 """
 Image file names

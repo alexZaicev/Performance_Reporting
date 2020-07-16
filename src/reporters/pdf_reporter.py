@@ -1,9 +1,11 @@
 import math
 import os
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from fpdf import FPDF
+from matplotlib import font_manager
 from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
@@ -34,7 +36,7 @@ class PDFReporter(RGReporterBase):
         self.report.add_font(DEJAVU_SERIF, '', get_font(DEJAVU_SERIF), uni=True)
         self.report.add_font(DEJAVU_SERIF, 'B', get_font(DEJAVU_SERIF_BOLD), uni=True)
         self.report.add_font(DEJAVU_SERIF_CONDENSED, '', get_font(DEJAVU_SERIF_CONDENSED), uni=True)
-        self.report.add_font(DEJAVU_SERIF_CONDENSED, 'B', get_font(DEJAVU_SERIF_BOLD), uni=True)
+        self.report.add_font(DEJAVU_SERIF_CONDENSED, 'B', get_font(DEJAVU_SERIF_CONDENSED_BOLD), uni=True)
         self.report.add_font(LUCIDA_SANS, '', get_font(LUCIDA_SANS), uni=True)
         self.report.add_font(LUCIDA_SANS, 'B', get_font(LUCIDA_SANS), uni=True)
 
@@ -52,6 +54,14 @@ class PDFReporter(RGReporterBase):
         self.__do_compose_sdm_scorecard(options)
         self.__do_compose_financial_hr_scorecard(options)
         self.__do_compose_relationship_effectiveness_scorecard(options)
+
+    @staticmethod
+    def __get_font_props(family=REPORT_FONT, bold=True, size=4):
+        if bold:
+            weight = 700
+        else:
+            weight = mpl.rcParams['font.weight']
+        return font_manager.FontProperties(fname=get_font(family), size=size, weight=weight)
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
@@ -83,20 +93,20 @@ class PDFReporter(RGReporterBase):
         entity = get_entity_by_m_id(options.entities, 'PMT_03', has_measure=False)
         column_1, column_2 = '', ''
         for d in entity.data_cfy:
-            if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
-                column_1 = d.measureTextColumn1
+            if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
+                column_1 = d.measure_text_column_1
         if len(column_1) == 0:
             for d in entity.data_lfy:
-                if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
-                    column_1 = d.measureTextColumn1
+                if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
+                    column_1 = d.measure_text_column_1
 
         for d in entity.data_cfy:
-            if d.measureTextColumn2 is not None and len(d.measureTextColumn2) > 0:
-                column_2 = d.measureTextColumn2
+            if d.measure_text_column_2 is not None and len(d.measure_text_column_2) > 0:
+                column_2 = d.measure_text_column_2
         if len(column_2) == 0:
             for d in entity.data_lfy:
-                if d.measureTextColumn2 is not None and len(d.measureTextColumn2) > 0:
-                    column_2 = d.measureTextColumn2
+                if d.measure_text_column_2 is not None and len(d.measure_text_column_2) > 0:
+                    column_2 = d.measure_text_column_2
 
         self.report.set_xy(x + 1, h + 1)
         self.report.multi_cell(graph_size[0] / 2 - 2, h=2.5, txt=column_1, align='J')
@@ -222,37 +232,37 @@ class PDFReporter(RGReporterBase):
     def __create_training_adult_social_care_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.adultSocialCare)
+            self.__create_training_table_row(w, h_line, d.adult_social_care)
 
     def __create_training_cwg_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.CWG)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.commonwealthGames)
+            self.__create_training_table_row(w, h_line, d.cwg)
 
     def __create_training_digital_and_customer_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.digitalAndCustomerServices)
+            self.__create_training_table_row(w, h_line, d.digital_and_customer_services)
 
     def __create_training_education_and_skills_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.educationAndSkills)
+            self.__create_training_table_row(w, h_line, d.education_and_skills)
 
     def __create_training_finance_and_governance_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.financeAndGovernance)
+            self.__create_training_table_row(w, h_line, d.finance_and_governance)
 
     def __create_training_hr_and_od_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.HR_AND_OD)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.hrAndOrganizationDevelopment)
+            self.__create_training_table_row(w, h_line, d.hr_and_od)
 
     def __create_training_inclusive_growth_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.inclusiveGrowth)
+            self.__create_training_table_row(w, h_line, d.inclusive_growth)
 
     def __create_training_neighbourhoods_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.NEIGHBOURHOODS)
@@ -262,7 +272,7 @@ class PDFReporter(RGReporterBase):
     def __create_training_pip_table_row(self, x, h, w, h_line, data):
         self.__setup_training_table_row(x, h, w, h_line, text.PIP)
         for d in data:
-            self.__create_training_table_row(w, h_line, d.partnershipsInsightAndPrevention)
+            self.__create_training_table_row(w, h_line, d.pip)
 
     def __create_training_table_row(self, w, h, value):
         if value is None or (isinstance(value, str) and try_parse(value, is_float=True) is None):
@@ -302,24 +312,24 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 3
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.adultSocialCare, d_current.adultSocialCare)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.adult_social_care, d_current.adult_social_care)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.educationAndSkills, d_current.educationAndSkills)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.education_and_skills, d_current.education_and_skills)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.inclusiveGrowth, d_current.inclusiveGrowth)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.inclusive_growth, d_current.inclusive_growth)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.financeAndGovernance, d_current.financeAndGovernance)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.finance_and_governance, d_current.finance_and_governance)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.hrAndOrganizationDevelopment,
-                                   d_current.hrAndOrganizationDevelopment)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.hr_and_od,
+                                   d_current.hr_and_od)
         h += h_line
         self.__creat_hse_table_row(x, h, w, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.partnershipsInsightAndPrevention,
-                                   d_current.partnershipsInsightAndPrevention)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.pip,
+                                   d_current.pip)
         h += h_line
-        self.__creat_hse_table_row(x, h, w, h_line, d_prev.digitalAndCustomerServices,
-                                   d_current.digitalAndCustomerServices)
+        self.__creat_hse_table_row(x, h, w, h_line, d_prev.digital_and_customer_services,
+                                   d_current.digital_and_customer_services)
         h += h_line * 2
 
         self.__creat_hse_table_row(x, h, w, h_line, d_prev.bcc, d_current.bcc, is_total=True)
@@ -352,32 +362,33 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 3
-        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, d_prev.adultSocialCare,
-                                                       d_current.adultSocialCare)
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE,
+                                                       d_prev.adult_social_care,
+                                                       d_current.adult_social_care)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS,
-                                                       d_prev.educationAndSkills, d_current.educationAndSkills)
+                                                       d_prev.education_and_skills, d_current.education_and_skills)
         h += h_line
-        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusiveGrowth,
-                                                       d_current.inclusiveGrowth)
+        self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusive_growth,
+                                                       d_current.inclusive_growth)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE,
-                                                       d_prev.financeAndGovernance, d_current.financeAndGovernance)
+                                                       d_prev.finance_and_governance, d_current.finance_and_governance)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT,
-                                                       d_prev.hrAndOrganizationDevelopment,
-                                                       d_current.hrAndOrganizationDevelopment)
+                                                       d_prev.hr_and_od,
+                                                       d_current.hr_and_od)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, d_prev.neighbourhoods,
                                                        d_current.neighbourhoods)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION,
-                                                       d_prev.partnershipsInsightAndPrevention,
-                                                       d_current.partnershipsInsightAndPrevention)
+                                                       d_prev.pip,
+                                                       d_current.pip)
         h += h_line
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES,
-                                                       d_prev.digitalAndCustomerServices,
-                                                       d_current.digitalAndCustomerServices)
+                                                       d_prev.digital_and_customer_services,
+                                                       d_current.digital_and_customer_services)
         h += h_line * 2
         self.__creat_accidents_and_incidents_table_row(x, h, w, h_line,
                                                        text.TOTAL_ACCIDENTS_AND_INCIDENTS, d_prev.bcc, d_current.bcc,
@@ -417,16 +428,16 @@ class PDFReporter(RGReporterBase):
         entity = get_entity_by_m_id(options.entities, '10_05')
         comment = ''
         for d in entity.data_cfy:
-            if d.reportComments is not None and len(d.reportComments) > 0:
-                comment = d.reportComments
+            if d.r_comments is not None and len(d.r_comments) > 0:
+                comment = d.r_comments
         if len(comment) == 0:
             for d in entity.data_lfy:
-                if d.reportComments is not None and len(d.reportComments) > 0:
-                    comment = d.reportComments
+                if d.r_comments is not None and len(d.r_comments) > 0:
+                    comment = d.r_comments
 
         self.report.set_xy(x + 0.5, h + graph_size[1] / 2 + 2)
         self.__set_font(size=6)
-        self.report.multi_cell(graph_size[0] - 1, 2.5, txt=comment, align='J')
+        self.report.multi_cell(graph_size[0] - 1, 2.5, txt=parse_comment(comment), align='J')
 
     def __do_compose_hr_workforce(self, h_orig, options):
         graph_size = (405, 83)
@@ -478,26 +489,27 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 3
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.adultSocialCare, d_current.adultSocialCare)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.adult_social_care,
+                                                   d_current.adult_social_care)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.educationAndSkills,
-                                                   d_current.educationAndSkills)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.education_and_skills,
+                                                   d_current.education_and_skills)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.inclusiveGrowth, d_current.inclusiveGrowth)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.inclusive_growth, d_current.inclusive_growth)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.financeAndGovernance,
-                                                   d_current.financeAndGovernance)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.finance_and_governance,
+                                                   d_current.finance_and_governance)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.hrAndOrganizationDevelopment,
-                                                   d_current.hrAndOrganizationDevelopment)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.hr_and_od,
+                                                   d_current.hr_and_od)
         h += h_line
         self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.partnershipsInsightAndPrevention,
-                                                   d_current.partnershipsInsightAndPrevention)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.pip,
+                                                   d_current.pip)
         h += h_line
-        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.digitalAndCustomerServices,
-                                                   d_current.digitalAndCustomerServices)
+        self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.digital_and_customer_services,
+                                                   d_current.digital_and_customer_services)
         h += h_line * 2
         self.__create_working_hours_lost_table_row(x, h, w, h_line, d_prev.bcc, d_current.bcc, is_total=True)
 
@@ -529,33 +541,33 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 3
-        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, d_prev.adultSocialCare,
-                                                d_current.adultSocialCare)
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, d_prev.adult_social_care,
+                                                d_current.adult_social_care)
         h += h_line
-        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, d_prev.educationAndSkills,
-                                                d_current.educationAndSkills)
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, d_prev.education_and_skills,
+                                                d_current.education_and_skills)
         h += h_line
-        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusiveGrowth,
-                                                d_current.inclusiveGrowth)
+        self.__creat_working_day_lost_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusive_growth,
+                                                d_current.inclusive_growth)
         h += h_line
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE,
-                                                d_prev.financeAndGovernance,
-                                                d_current.financeAndGovernance)
+                                                d_prev.finance_and_governance,
+                                                d_current.finance_and_governance)
         h += h_line
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT,
-                                                d_prev.hrAndOrganizationDevelopment,
-                                                d_current.hrAndOrganizationDevelopment)
+                                                d_prev.hr_and_od,
+                                                d_current.hr_and_od)
         h += h_line
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, d_prev.neighbourhoods,
                                                 d_current.neighbourhoods)
         h += h_line
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION,
-                                                d_prev.partnershipsInsightAndPrevention,
-                                                d_current.partnershipsInsightAndPrevention)
+                                                d_prev.pip,
+                                                d_current.pip)
         h += h_line
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES,
-                                                d_prev.digitalAndCustomerServices,
-                                                d_current.digitalAndCustomerServices)
+                                                d_prev.digital_and_customer_services,
+                                                d_current.digital_and_customer_services)
         h += h_line * 2
         self.__creat_working_day_lost_table_row(x, h, w, h_line, text.TOTAL_CITY_WIDE,
                                                 d_prev.bcc,
@@ -666,33 +678,33 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 2.5
-        self.__create_sickness_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, d_prev.adultSocialCare,
-                                         d_current.adultSocialCare)
+        self.__create_sickness_table_row(x, h, w, h_line, text.ADULT_SOCIAL_CARE, d_prev.adult_social_care,
+                                         d_current.adult_social_care)
         h += h_line
-        self.__create_sickness_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, d_prev.educationAndSkills,
-                                         d_current.educationAndSkills)
+        self.__create_sickness_table_row(x, h, w, h_line, text.EDUCATION_AND_SKILLS, d_prev.education_and_skills,
+                                         d_current.education_and_skills)
         h += h_line
-        self.__create_sickness_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusiveGrowth,
-                                         d_current.inclusiveGrowth)
+        self.__create_sickness_table_row(x, h, w, h_line, text.INCLUSIVE_GROWTH, d_prev.inclusive_growth,
+                                         d_current.inclusive_growth)
         h += h_line
-        self.__create_sickness_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE, d_prev.financeAndGovernance,
-                                         d_current.financeAndGovernance)
+        self.__create_sickness_table_row(x, h, w, h_line, text.FINANCE_AND_GOVERNANCE, d_prev.finance_and_governance,
+                                         d_current.finance_and_governance)
         h += h_line
         self.__create_sickness_table_row(x, h, w, h_line, text.HR_AND_ORGANISATION_DEVELOPMENT,
-                                         d_prev.hrAndOrganizationDevelopment, d_current.hrAndOrganizationDevelopment)
+                                         d_prev.hr_and_od, d_current.hr_and_od)
         h += h_line
         self.__create_sickness_table_row(x, h, w, h_line, text.NEIGHBOURHOODS, d_prev.neighbourhoods,
                                          d_current.neighbourhoods)
         h += h_line
         self.__create_sickness_table_row(x, h, w, h_line, text.PARTNERSHIP_INSIGHT_AND_PREVENTION,
-                                         d_prev.partnershipsInsightAndPrevention,
-                                         d_current.partnershipsInsightAndPrevention)
+                                         d_prev.pip,
+                                         d_current.pip)
         h += h_line
         self.__create_sickness_table_row(x, h, w, h_line, text.DIGITAL_AND_CUSTOMER_SERVICES,
-                                         d_prev.digitalAndCustomerServices, d_current.digitalAndCustomerServices)
+                                         d_prev.digital_and_customer_services, d_current.digital_and_customer_services)
         h += h_line
-        self.__create_sickness_table_row(x, h, w, h_line, text.COMMONWEALTH_GAMES, d_prev.commonwealthGames,
-                                         d_current.commonwealthGames)
+        self.__create_sickness_table_row(x, h, w, h_line, text.COMMONWEALTH_GAMES, d_prev.cwg,
+                                         d_current.cwg)
         h += h_line
         self.__create_sickness_table_row(x, h, w, h_line, text.TOTAL_CITY_WIDE, d_prev.bcc, d_current.bcc)
 
@@ -770,7 +782,8 @@ class PDFReporter(RGReporterBase):
     def __do_compose_absence_days_chart(self, x, h, options, m_id):
         graph_size = (120, 40)
         fig, ax = plt.subplots(figsize=(14, 4))
-        plt.title(text.ABSENCE_DAYS_LOST_12_MONTHS_ROLLING, fontsize=16, wrap=True)
+        ax.set_title(text.ABSENCE_DAYS_LOST_12_MONTHS_ROLLING,
+                     fontproperties=self.__get_font_props(DEJAVU_SERIF_CONDENSED_BOLD, size=12, bold=True), wrap=True)
 
         entity = get_entity_by_m_id(options.entities, m_id, has_measure=False)
         f_data = filter_data_by_fym(entity.data(), options.fym)
@@ -799,7 +812,8 @@ class PDFReporter(RGReporterBase):
         ax.autoscale_view()
 
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(m_id))
-        plt.savefig(f_path)
+        fig.savefig(f_path)
+        plt.close(fig=fig)
         self.report.image(f_path, x=x, y=h, w=graph_size[0], h=graph_size[1], type='', link='')
         return h + graph_size[1]
 
@@ -840,11 +854,11 @@ class PDFReporter(RGReporterBase):
         else:
             recent_data = data_current_pos_list[len(data_current_pos_list) - 1]
             if FREQ_ANNUAL in frequency:
-                dot = format_value(recent_data.dotFromSamePeriodLastYear)
+                dot = format_value(recent_data.dot_from_same_period_last_year)
             elif FREQ_QUARTER in frequency:
-                dot = format_value(recent_data.dotFromPreviousQuarter)
+                dot = format_value(recent_data.dot_from_previous_quarter)
             else:
-                dot = format_value(recent_data.dotFromPreviousMonth)
+                dot = format_value(recent_data.dot_from_previous_month)
             dot = get_text_dot(dot)
             result = format_value(recent_data.result, d_format)
             target = format_value(recent_data.target, d_format)
@@ -876,7 +890,8 @@ class PDFReporter(RGReporterBase):
 
     def __compose_financial_chart(self, data, title, m_id, freq):
         fig, ax = plt.subplots(figsize=(8, 4))
-        plt.title(title, fontsize=16, wrap=True)
+        ax.set_title(title, fontproperties=self.__get_font_props(DEJAVU_SERIF_CONDENSED_BOLD, size=16, bold=True),
+                     wrap=True)
 
         x_ticks, x_ticks_lbl, y_target = self.__get_ticks_and_target(freq, data)
         y_target = [try_parse('{:.2f}'.format(x * 100), is_float=True) for x in y_target]
@@ -914,7 +929,8 @@ class PDFReporter(RGReporterBase):
         ax.set_xticklabels(new_lbl, rotation=45, ha='right')
 
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(m_id))
-        plt.savefig(f_path)
+        fig.savefig(f_path)
+        plt.close(fig=fig)
         self.report.image(f_path, x=None, y=None, w=80, h=0, type='', link='')
 
     def __do_compose_cpm_scorecard(self, options):
@@ -946,7 +962,7 @@ class PDFReporter(RGReporterBase):
 
         h += 1
         self.report.set_xy(9, h)
-        self.report.set_font(REPORT_FONT, 'B', 6)
+        self.__set_font(size=6, is_bold=True)
         self.report.cell(35, 6, '{}:'.format(text.TOTAL_MEASURES), align='L')
         n_sorted = len(e_sorted)
         self.report.cell(20, 6, '{}'.format(n_sorted), align='L')
@@ -990,7 +1006,7 @@ class PDFReporter(RGReporterBase):
         self.report.multi_cell(16, h=2.5, txt=text.TOTAL, align='C')
 
         h += 6
-        self.report.set_font(REPORT_FONT, '', 6)
+        self.__set_font(size=6, is_bold=True)
         for i in range(0, 8, 1):
             self.report.set_xy(7.5, h)
             for j in range(0, 7, 1):
@@ -1033,7 +1049,7 @@ class PDFReporter(RGReporterBase):
             self.report.multi_cell(16, h=5, txt=txt, align='L')
         color = get_color(BLACK)
         self.report.set_text_color(color.r, color.g, color.b)
-        self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_LEAN_WORK_INVEST))),
+        self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_LEARN_WORK_INVEST))),
                          align='C')
         self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_GROW_UP))), align='C')
         self.report.cell(16, h=6, txt='{}'.format(len(sort_entities_by_outcome(entities, OUTCOME_AGE_WELL))), align='C')
@@ -1053,23 +1069,30 @@ class PDFReporter(RGReporterBase):
             if entity.data_cfy[0].m_id == m_id:
                 comment = ''
                 for d in entity.data_cfy:
-                    if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
-                        comment = d.measureTextColumn1
+                    if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
+                        comment = d.measure_text_column_1
                 if len(comment) == 0:
                     for d in entity.data_lfy:
-                        if d.measureTextColumn1 is not None and len(d.measureTextColumn1) > 0:
-                            comment = d.measureTextColumn1
+                        if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
+                            comment = d.measure_text_column_1
                 self.report.set_xy(121, h)
-                self.report.set_font(REPORT_FONT, '', 6)
-                self.report.multi_cell(150, h=2.5, txt=comment, align='J')
+                self.__set_font(size=6)
+                self.report.multi_cell(150, h=2.5, txt=parse_comment(comment), align='J')
                 break
 
     def __do_compose_grid_charts(self, options):
         graphs = 0
         coords = list(self.left_top)
 
+        e_sorted = list()
+        for e in options.entities:
+            if not isinstance(e, CpmEntity):
+                continue
+            e_sorted.append(e)
+        e_sorted.sort(key=lambda x: (get_outcome_priority(x.measure_cfy.outcome), x.measure_cfy.m_ref_no))
+
         # compose grid charts for CPM measures
-        for entity in options.entities:
+        for entity in e_sorted:
             if not isinstance(entity, CpmEntity):
                 continue
             # check if entity should be excluded from the report
@@ -1112,7 +1135,7 @@ class PDFReporter(RGReporterBase):
 
     def __create_scorecard_top(self, add_page=False, h=98.0, add_first=True, add_second=True, add_third=False, w=405,
                                x=7.5):
-        self.report.set_font(REPORT_FONT, 'B', 8)
+        self.__set_font(size=8, is_bold=True)
         if add_page:
             self.report.add_page()
         if add_first:
@@ -1133,7 +1156,7 @@ class PDFReporter(RGReporterBase):
             self.report.set_text_color(color.r, color.g, color.b)
 
         if add_third:
-            self.report.set_font(REPORT_FONT, 'B', 5)
+            self.__set_font(size=5, is_bold=True)
 
             self.report.set_xy(x, h)
             color = get_color(LIGHT_AQUA)
@@ -1163,7 +1186,7 @@ class PDFReporter(RGReporterBase):
         if n_cells == 0:
             return
         self.report.set_xy(10, 30)
-        self.report.set_font(REPORT_FONT, 'B', 8)
+        self.__set_font(size=8, is_bold=True)
         if n_cells > 0:
             self.report.cell(w=135, h=118, border=1)
         if n_cells > 1:
@@ -1179,27 +1202,25 @@ class PDFReporter(RGReporterBase):
             self.report.cell(w=135, h=118, border=1, ln=2)
 
     def __add_empty_line(self):
-        self.report.set_font(REPORT_FONT, '', 5.5)
-        # self.report.cell(35, 5, '', ln=2, align='C')
+        self.__set_font(size=5)
         self.report.cell(0, 1, ' ', 0, 2, 'C')
 
-    def __set_font(self, is_bold=False, size=5):
+    def __set_font(self, family=REPORT_FONT, is_bold=False, size=5):
         if is_bold:
-            self.report.set_font(REPORT_FONT, 'B', size)
+            self.report.set_font(family, 'B', size)
         else:
-            self.report.set_font(REPORT_FONT, '', size)
+            self.report.set_font(family, '', size)
 
     def __compose_visuals_for_entity(self, entity, left_top, fym):
         self.__reset_colors()
         self.report.set_xy(left_top[0], left_top[1])
         d_format = entity.measure_cfy.data_format
         frequency = entity.measure_cfy.frequency.upper()
-
-        self.__compose_bar_chart(entity.measure_cfy, filter_data_by_fym(entity.data(), fym), frequency, d_format)
+        f_data = filter_data_by_fym(entity.data(), fym)
+        self.__compose_bar_chart(entity.measure_cfy, f_data, frequency, d_format)
 
         self.__add_empty_line()
-        # TODO conclude how to get comments from last/current fiscal year
-        self.__compose_report_comment(entity.data())
+        self.__compose_report_comment(f_data)
 
         self.report.set_xy(left_top[0] + 95, left_top[1] + 5)
         self.__compose_benchmark_tbl(entity, d_format, fym)
@@ -1208,12 +1229,12 @@ class PDFReporter(RGReporterBase):
         self.__compose_current_pos_tbl(entity, frequency, d_format, fym)
 
         self.__add_empty_line()
-        self.__compose_gauge_chart(entity.data())
+        self.__compose_gauge_chart(get_data_by_date(entity.data(), fym))
 
     def __compose_report_comment(self, data_list, w=93):
         r_comment = get_report_comment(data_list)
-        self.report.set_font(REPORT_FONT, '', 5.5)
-        self.report.multi_cell(w, 2.5, r_comment, 0, 'J')
+        self.__set_font(size=5, family=REPORT_FONT)
+        self.report.multi_cell(w, 2.5, txt=parse_comment(r_comment), align='J')
 
     def __compose_benchmark_tbl(self, entity, d_format, fym):
         data_with_bmk_list = get_bmk(get_data_by_date(entity.data(), fym))
@@ -1222,16 +1243,16 @@ class PDFReporter(RGReporterBase):
             b_at_bmk, quartile, bmk_y, bmk_g, pref_dot = '', '', '', '', ''
         else:
             recent_data = data_with_bmk_list[len(data_with_bmk_list) - 1]
-            nat_avg = format_value(recent_data.benchmarkResult, d_format)
-            b_at_bmk = format_value(recent_data.birmResultAtBenchmark, d_format)
+            nat_avg = format_value(recent_data.bck_result, d_format)
+            b_at_bmk = format_value(recent_data.brum_result_at_bck, d_format)
 
-            quartile = format_value(recent_data.birmQuartilePosition)
-            if quartile is None:
+            quartile = format_value(recent_data.brum_quartile_pos)
+            if quartile is None or len(quartile) == 0:
                 quartile = text.NOT_APPLICABLE
             quartile = quartile.upper()
 
-            bmk_y = '{} {}'.format(text.BENCHMARK, format_value(recent_data.yearOfBenchmarkData))
-            bmk_g = format_value(recent_data.benchmarkGroup)
+            bmk_y = '{} {}'.format(text.BENCHMARK, format_value(recent_data.year_of_bck_data))
+            bmk_g = format_value(recent_data.bck_group)
 
             pref_dot = get_text_dot(entity.measure_cfy.pref_dot)
 
@@ -1278,11 +1299,11 @@ class PDFReporter(RGReporterBase):
         else:
             month_data = data_current_pos_list[len(data_current_pos_list) - 1]
             if FREQ_ANNUAL in frequency:
-                dot = format_value(month_data.dotFromSamePeriodLastYear)
+                dot = format_value(month_data.dot_from_same_period_last_year)
             elif FREQ_QUARTER in frequency:
-                dot = format_value(month_data.dotFromPreviousQuarter)
+                dot = format_value(month_data.dot_from_previous_quarter)
             else:
-                dot = format_value(month_data.dotFromPreviousMonth)
+                dot = format_value(month_data.dot_from_previous_month)
             dot = get_text_dot(dot)
             result = format_value(month_data.result, d_format)
             target = format_value(month_data.target, d_format)
@@ -1310,15 +1331,17 @@ class PDFReporter(RGReporterBase):
         self.report.cell(-17)
 
     def __compose_gauge_chart(self, data_list):
-        data_qp_list = get_qp(data_list)
-        if len(data_qp_list) == 0:
+        result = get_qp(data_list)
+        if len(result) == 0:
             return
-        recent_data = data_qp_list[len(data_qp_list) - 1]
-        self.__set_font(is_bold=True, size=8)
-        self.report.cell(35, 6, text.QUARTILE_PROJECTION, 0, 2, 'C')
-        self.__set_font(size=7)
-        self.report.cell(35, 3, text.CURRENT_ACTUAL_AGAINST, 0, 2, 'C')
-        self.report.cell(35, 3, text.NATIONAl_DATA_AVAILABLE, 0, 2, 'C')
+        data = result[0]
+        self.__set_font(is_bold=True, size=6)
+        self.report.cell(37, 6, text.QUARTILE_PROJECTION, align='C', ln=2)
+        self.__set_font(size=5)
+        self.report.multi_cell(37, 2.5, text.CURRENT_ACTUAL_AGAINST_NATIONAl_DATA_AVAILABLE, align='C', ln=2)
+
+        qp_value = try_parse(data.quartile_projection, is_int=True)
+
         g_chart = graph_objects.Figure(data=graph_objects.Indicator(
             mode='gauge',
             value=0,
@@ -1337,23 +1360,32 @@ class PDFReporter(RGReporterBase):
                 'threshold': {
                     'line': {'color': "black", 'width': 10},
                     'thickness': 1,
-                    'value': try_parse(recent_data.quartileProjection, is_float=True)}}))
-        f_path = join(get_dir_path(TEMP), '{}_quartile_projection.png'.format(recent_data.m_id))
+                    'value': qp_value
+                }
+            }
+        ))
+        f_path = join(get_dir_path(TEMP), '{}_quartile_projection.png'.format(data.m_id))
         g_chart.write_image(f_path)
-        self.report.image(f_path, x=None, y=None, w=35, h=0, type='', link='')
+        self.report.image(f_path, x=None, y=None, w=37, h=0, type='', link='')
 
     def __compose_bar_chart(self, measure, data_list, frequency, d_format):
         fig, ax = plt.subplots()
         if d_format.upper() == PERCENTAGE:
             ax.yaxis.set_major_formatter(PercentFormatter(1.0))
         graph_title = '{} (ex. {})'.format(measure.m_title, measure.m_ref_no)
-        plt.title(graph_title.replace('\r', '').replace('\n', ''), fontsize=12, wrap=True)
+        ax.set_title(graph_title.replace('\r', '').replace('\n', ''),
+                     fontproperties=self.__get_font_props(DEJAVU_SERIF_CONDENSED_BOLD, size=12, bold=True), wrap=True)
 
         x_freq = self.__get_freq(frequency)
         x_ticks, x_ticks_lbl, y_target = self.__get_ticks_and_target(x_freq, data_list)
 
         ax.plot(x_ticks, y_target, "k--", color='darkblue', zorder=4)
         baseline = try_parse(measure.baseline, is_float=True)
+        if baseline is None and isinstance(measure.baseline, str):
+            baseline = measure.baseline.split('%')[0]
+            baseline = ''.join(ch for ch in baseline if ch.isdigit() or ch == '.')
+            baseline = try_parse(baseline, is_float=True)
+
         if baseline is not None:
             ax.plot(x_ticks, [baseline] * len(x_ticks), color='brown', zorder=4)
         else:
@@ -1387,7 +1419,8 @@ class PDFReporter(RGReporterBase):
             ax.set_xticklabels(x_ticks_lbl, rotation='horizontal')
 
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(measure.m_id))
-        plt.savefig(f_path)
+        fig.savefig(f_path)
+        plt.close(fig=fig)
         self.report.image(f_path, x=None, y=None, w=94, h=0, type='', link='')
 
     @staticmethod
@@ -1405,7 +1438,7 @@ class PDFReporter(RGReporterBase):
             if populate_target:
                 y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         elif freq == FREQ_QUARTER:
-            x_ticks = sorted(set([try_parse(x.yearQuarter, is_int=True) for x in data_list]))
+            x_ticks = sorted(set([try_parse(x.year_quarter, is_int=True) for x in data_list]))
             # get quarter abbreviations
             x_ticks_lbl = QUARTERS + QUARTERS
 
@@ -1414,7 +1447,7 @@ class PDFReporter(RGReporterBase):
             if populate_target:
                 y_target = get_target_per_given_frequency(data_list, freq, x_ticks)
         else:
-            x_ticks = [try_parse(x.yearMonth, is_int=True) for x in data_list]
+            x_ticks = [try_parse(x.year_month, is_int=True) for x in data_list]
             # get month abbreviations
             x_ticks_lbl = list(FISCAL_MONTHS.values())
             x_ticks_lbl = x_ticks_lbl + x_ticks_lbl

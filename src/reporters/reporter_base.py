@@ -19,6 +19,7 @@ class RGReporterBase(ABC):
         self.report_name = REPORT_NAME
 
     def do_init(self):
+        # TODO resolve issue with temp directory failing to delete
         tmp_dir = get_dir_path(TEMP)
         if os.path.exists(tmp_dir):
             shutil.rmtree(tmp_dir)

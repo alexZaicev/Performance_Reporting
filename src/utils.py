@@ -1,6 +1,6 @@
 import logging
-import re
 import os
+import re
 from datetime import datetime
 from os.path import dirname, abspath, join
 
@@ -515,3 +515,33 @@ def parse_comment(text):
                 new_text += '{}\n'.format(lines[i])
             text = new_text
     return text
+
+
+def get_year_month_of_prev_and_current_quarters(fym):
+    cym, pym = None, None
+
+    f_month_id = try_parse(str(fym)[-2:], is_int=True)
+    f_month = FISCAL_MONTHS[f_month_id]
+    f_year = try_parse(str(fym)[:-4], is_int=True)
+
+    for q in QUARTER_MONTH_MAPPING:
+        if f_month in QUARTER_MONTH_MAPPING[q]:
+            cym = QUARTER_MONTH_MAPPING[q][2]
+            break
+
+    if cym is not None:
+        cym = try_parse('{}{:02d}'.format(str(fym)[:-2], get_fiscal_month_id(cym)), is_int=True)
+
+    f_month_id -= 3
+    if f_month_id < 1:
+        f_month_id += 12
+        f_year -= 1
+    f_month = FISCAL_MONTHS[f_month_id]
+    for q in QUARTER_MONTH_MAPPING:
+        if f_month in QUARTER_MONTH_MAPPING[q]:
+            pym = QUARTER_MONTH_MAPPING[q][2]
+            break
+
+    if pym is not None:
+        pym = try_parse('{}{}{:02d}'.format(f_year, str(f_year + 1)[-2:], get_fiscal_month_id(pym)), is_int=True)
+    return pym, cym

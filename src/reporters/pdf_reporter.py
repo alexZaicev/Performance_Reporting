@@ -48,10 +48,10 @@ class PDFReporter(RGReporterBase):
                            dest='F')
 
     def do_compose(self, options=None):
-        self.__do_compose_cpm_scorecard(options)
-        self.__do_compose_grid_charts(options)
-        self.__do_compose_sdm_scorecard(options)
-        self.__do_compose_financial_hr_scorecard(options)
+        # self.__do_compose_cpm_scorecard(options)
+        # self.__do_compose_grid_charts(options)
+        # self.__do_compose_sdm_scorecard(options)
+        # self.__do_compose_financial_hr_scorecard(options)
         self.__do_compose_relationship_effectiveness_scorecard(options)
 
     @staticmethod
@@ -345,22 +345,13 @@ class PDFReporter(RGReporterBase):
         self.__set_font(size=5, is_bold=True)
         self.report.set_xy(x, h)
 
-        pym, cym = None, None
+        pym, cym = get_year_month_of_prev_and_current_quarters(options.fym)
+        pq_data = get_data_by_m_id_and_date(options.entities, '9_05', pym)
+        cq_data = get_data_by_m_id_and_date(options.entities, '9_05', cym)
 
-        # f_month_id = try_parse(options.fym[-2:], is_int=True)
-        # f_month = FISCAL_MONTHS[f_month_id]
-
-        # for q in QUARTER_MONTH_MAPPING:
-        #     if f_month in QUARTER_MONTH_MAPPING[q]:
-        #         cym = QUARTER_MONTH_MAPPING[q][0]
-        #         break
-
-        # f_month_id -= 3
-        # f_month = FISCAL_MONTHS[f_month_id]
-
-        self.report.cell(w / 2 - 10, h=h_line)
-        self.report.cell(w / 9, h=h_line, txt='Jun', align='C')
-        self.report.cell(w / 9, h=h_line, txt='Sep', align='C')
+        self.report.cell(w / 3, h=h_line)
+        self.report.cell(w / 9, h=h_line, txt=pq_data.month[-3:].title(), align='C')
+        self.report.cell(w / 9, h=h_line, txt=cq_data.month[-3:].title(), align='C')
         self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
         self.report.cell(w / 9, h=h_line, txt=text.VARIANCE, align='C')
 
@@ -368,7 +359,8 @@ class PDFReporter(RGReporterBase):
         h_line = 3
 
         self.__create_customer_rel_table_row(x, h, w, h_line,
-                                             text.CITIZENS_REGISTERING_SATISFACTION_WITH_THE_COUNCIL_QUARTERLY, 0, 0)
+                                             text.CITIZENS_REGISTERING_SATISFACTION_WITH_THE_COUNCIL_QUARTERLY,
+                                             pq_data.result, cq_data.result)
         h += h_line
 
         d_prev, d_current = get_prev_and_current_month_data(options, '9_07')
@@ -376,7 +368,7 @@ class PDFReporter(RGReporterBase):
         self.report.set_xy(x, h)
         h_line = 4
         self.__set_font(size=5, is_bold=True)
-        self.report.cell(w / 2 - 10, h=h_line)
+        self.report.cell(w / 3, h=h_line)
         self.report.cell(w / 9, h=h_line, txt=d_prev.month[-3:].title(), align='C')
         self.report.cell(w / 9, h=h_line, txt=d_current.month[-3:].title(), align='C')
         self.report.cell(w / 9, h=h_line, txt=text.DOT, align='C')
@@ -392,7 +384,7 @@ class PDFReporter(RGReporterBase):
     def __create_customer_rel_table_row(self, x, h, w, h_line, title, p_value, c_value):
         self.report.set_xy(x, h)
         self.__set_font(size=5)
-        self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
+        self.report.cell(w / 3, h=h_line, txt=title, align='L')
 
         p_value, c_value = self.__adjust_prev_current_values(p_value, c_value, is_percentage=True)
         variance, dot = get_variance_and_dot(p_value, c_value)

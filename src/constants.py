@@ -159,12 +159,12 @@ FISCAL_MONTHS = {
     12: 'MAR'
 }
 QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4']
-# QUARTER_MONTH_MAPPING = {
-#     QUARTERS[0]: FISCAL_MONTHS.values()[:3],
-#     QUARTERS[1]: FISCAL_MONTHS.values()[3:6],
-#     QUARTERS[2]: FISCAL_MONTHS.values()[6:9],
-#     QUARTERS[3]: FISCAL_MONTHS.values()[9:]
-# }
+QUARTER_MONTH_MAPPING = {
+    QUARTERS[0]: list(FISCAL_MONTHS.values())[:3],
+    QUARTERS[1]: list(FISCAL_MONTHS.values())[3:6],
+    QUARTERS[2]: list(FISCAL_MONTHS.values())[6:9],
+    QUARTERS[3]: list(FISCAL_MONTHS.values())[9:]
+}
 
 PERF_BLUE = 'BLUE'
 PERF_RED = 'RED'

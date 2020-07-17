@@ -121,3 +121,18 @@ UNASSIGNED = 'Unassigned'
 TOTAL_COMPLAINTS = 'Total complaints'
 CHILDRENS_TRUST = "Children's trust"
 HUMAN_RESOURCES = 'Human resources'
+REQUESTS_IN_TIMESCALE = 'Requests (in timescale)'
+COMMENTARY = 'Commentary'
+FREEDOM_OF_INFORMATION = 'Freedom of information'
+SUBJECT_ACCESS_REQUESTS = 'Subject access requests'
+GOVERNANCE = 'Governance'
+OMBUDSMAN_COMPLAINTS_RESULTING_IN_REPORTS_ISSUED = 'Ombudsman complaints resulting in reports issued'
+JUDICIAL_REVIEW_CHALLENGES_SUCCESSFULLY_DEFENCED = 'Judicial review challenges successfully defended'
+WHISTLEBLOWING_REQUESTS_RECEIVED_THAT_PROGRESS_UNDER_THE_BOUNDARIES_OF_THE_POLICY = 'Whistleblowing ' \
+                                                                                    'requests received that progress ' \
+                                                                                    'under the boundaries of the policy'
+NUMBER_OF_FINAL_AUDIT_REPORTS_ISSUES_PER_MONTH = 'Number of final audit reports issued per month'
+DATA_BREACHES_INCIDENTS_AND_CONCERNS = 'Data breaches (incidents/concerns)'
+BREACH = 'Breach'
+INVESTIGATION_ONGOING = 'Investigation ongoing'
+TOTAL_INCIDENTS_AND_CONCERNS = 'Total incidents & concerns'

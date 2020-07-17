@@ -62,6 +62,17 @@ class PDFReporter(RGReporterBase):
             weight = mpl.rcParams['font.weight']
         return font_manager.FontProperties(fname=get_font(family), size=size, weight=weight)
 
+    def __add_image(self, options, f_type, fym=None, x=None, y=None, w=0.0, h=0.0):
+        if fym is None:
+            fym = options.fym
+        f_image = options.images.find(f_type=f_type, fym=fym)
+        if f_image is not None:
+            self.report.image(f_image.path, x=x, y=y, w=w, h=h)
+        else:
+            logging.error(
+                'Could not find image of type [{}] that would satisfy provided fiscal data [{}]'.format(f_type,
+                                                                                                        options.fym))
+
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
         self.report.cell(220, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
@@ -85,7 +96,7 @@ class PDFReporter(RGReporterBase):
         self.__do_compose_corporate_risks(h, options)
 
     def __do_compose_decision_planning_cabinet(self, x, h, options):
-        graph_size = (185, 52)
+        graph_size = (185, 42)
         self.__set_font(size=6)
         self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
@@ -116,30 +127,283 @@ class PDFReporter(RGReporterBase):
         self.report.set_xy(x + 1 + graph_size[0] / 2 + 4, h + 1)
         self.report.multi_cell(graph_size[0] / 2 - 2, h=2.5, txt=column_2, align='J')
 
-    def __do_compose_effectiveness_and_compliance(self, x, h, options):
-        graph_size = (185, 214)
+    def __do_compose_effectiveness_and_compliance(self, x, h_orig, options):
+        graph_size = (185, 224)
+        h = h_orig
         self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        self.report.image(options.images[OFSTED], x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1, h=0)
-        return h + graph_size[1]
+        self.__add_image(options, OFSTED, x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1)
+
+        h = self.__do_compose_request_table(x, h + 111, graph_size[0] - 0.25, options)
+        h = self.__do_compose_governance_table(x, h, graph_size[0] - 0.25, options)
+        h = self.__do_compose_final_audit_report_table(x, h, graph_size[0] - 0.25, options)
+        self.__do_compose_data_breaches_tables(x, h, graph_size[0] - 0.25, options)
+
+        return h_orig + graph_size[1]
+
+    def __do_compose_data_breaches_tables(self, x, h, w, options):
+        h_line = 5
+
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w * 0.3, h=h_line, txt=text.DATA_BREACHES_INCIDENTS_AND_CONCERNS, fill=1)
+        self.report.cell(w * 0.35, h=h_line, txt=text.BREACH, align='C', fill=1)
+        self.report.cell(w * 0.35, h=h_line, txt=text.INVESTIGATION_ONGOING, align='C', fill=1)
+
+        h += h_line + 2
+        self.__do_compose_data_breaches_table_name(x, h, w * 0.3)
+        self.__do_compose_breach_table(x + w * 0.3, h, w * 0.35, options)
+        self.__do_compose_investigation_table(x + w * 0.65, h, w * 0.35, options)
+
+    def __do_compose_breach_table(self, x, h, w, options):
+        self.report.set_xy(x, h)
+        h_line = 3
+        self.__set_font(size=5, is_bold=True)
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_14')
+        self.report.cell(w * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_15')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_20')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_18')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_19')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_21')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        # TODO PIP data is missing
+        # d_prev, d_current = get_prev_and_current_month_data(options, '9_19')
+        h = self.__create_breach_table_row(x, h, w, h_line, 0, 0, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_17')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_16')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, border='R')
+
+        # TODO education & skills is missing
+        # d_prev, d_current = get_prev_and_current_month_data(options, '9_22')
+        h = self.__create_breach_table_row(x, h, w, h_line, 0, 0, border='R')
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_13')
+        self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, is_total=True, border='R')
+
+    def __create_breach_table_row(self, x, h, w, h_line, p_value, c_value, is_total=False, border=''):
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.__set_font(size=5, is_bold=is_total)
+
+        p_value, c_value = self.__adjust_prev_current_values(p_value, c_value)
+        variance, dot = get_variance_and_dot(p_value, c_value)
+
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(p_value), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(c_value), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt='{}'.format(variance), align='C', border=border)
+        return h
+
+    def __do_compose_investigation_table(self, x, h, w, options):
+        self.report.set_xy(x, h)
+        h_line = 3
+        self.__set_font(size=5, is_bold=True)
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_23')
+        self.report.cell(w * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_24')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_30')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_28')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_29')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        # TODO PIP data is missing
+        # d_prev, d_current = get_prev_and_current_month_data(options, '9_29')
+        h = self.__create_breach_table_row(x, h, w, h_line, 0, 0)
+
+        # TODO PIP data is missing
+        # d_prev, d_current = get_prev_and_current_month_data(options, '9_19')
+        h = self.__create_breach_table_row(x, h, w, h_line, 0, 0)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_26')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_25')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_27')
+        h = self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_22')
+        self.__create_breach_table_row(x, h, w, h_line, d_prev.result, d_current.result, is_total=True)
+
+    def __do_compose_data_breaches_table_name(self, x, h, w):
+        self.report.set_xy(x, h)
+        h_line = 3
+        self.__set_font(size=5)
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.ADULT_SOCIAL_CARE, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.CHILDRENS_TRUST, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.INCLUSIVE_GROWTH, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.FINANCE_AND_GOVERNANCE, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.HUMAN_RESOURCES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.NEIGHBOURHOODS, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.PARTNERSHIP_INSIGHT_AND_PREVENTION, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.DIGITAL_AND_CUSTOMER_SERVICES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.COMMONWEALTH_GAMES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.EDUCATION_AND_SKILLS, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.__set_font(size=5, is_bold=True)
+        self.report.cell(w, h=h_line, txt='    {}'.format(text.TOTAL_INCIDENTS_AND_CONCERNS), align='L')
+
+    def __do_compose_final_audit_report_table(self, x, h, w, options):
+        h_line = 5
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '10_04')
+
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w * 0.15, h=h_line, fill=1)
+        self.report.cell(w * 0.2, h=h_line, txt=d_prev.month[-3:].title(), align='C', fill=1)
+        self.report.cell(w * 0.2, h=h_line, txt=d_current.month[-3:].title(), align='C', fill=1)
+        self.report.cell(w * 0.45, h=h_line, txt=text.COMMENTARY, align='L', fill=1)
+        h += h_line
+        h_line = 15
+
+        self.__set_font(size=5)
+        self.report.set_xy(x, h + (h_line / 2 - 2.5))
+        self.report.multi_cell(w * 0.15, h=2.5, txt=text.NUMBER_OF_FINAL_AUDIT_REPORTS_ISSUES_PER_MONTH, align='L')
+        self.report.set_xy(x + w * 0.2, h + 0.5)
+        self.__add_image(options, f_type=FINAL_AUDIT_REPORT, fym=d_prev.year_month, w=w * 0.1, h=h_line - 1)
+        self.report.set_xy(x + w * 0.4, h + 0.5)
+        self.__add_image(options, f_type=FINAL_AUDIT_REPORT, fym=d_current.year_month, w=w * 0.1, h=h_line - 1)
+
+        self.report.set_xy(x + w * 0.55, h)
+        self.report.multi_cell(w * 0.35, h=2.5,
+                               txt='{}'.format(parse_comment(d_current.r_comments, size=380, remove_line_feeds=True)),
+                               align='L')
+        h += h_line
+
+        return h
+
+    def __do_compose_governance_table(self, x, h, w, options):
+        d_prev, d_current = get_prev_and_current_month_data(options, '10_01')
+
+        h = self.__create_request_governance_table_header(x, h, w, 5, text.GOVERNANCE,
+                                                          d_prev.month[-3:].title(), d_current.month[-3:].title())
+        h_line = 4
+        self.__create_request_table_row(x, h, w, h_line, text.OMBUDSMAN_COMPLAINTS_RESULTING_IN_REPORTS_ISSUED,
+                                        d_prev.result, d_current.result,
+                                        d_current.target, d_current.r_comments, multi_line_title=True)
+        self.__add_empty_line(h=h_line)
+        h += h_line * 2
+        d_prev, d_current = get_prev_and_current_month_data(options, '10_02')
+        self.__create_request_table_row(x, h, w, h_line, text.JUDICIAL_REVIEW_CHALLENGES_SUCCESSFULLY_DEFENCED,
+                                        d_prev.result, d_current.result,
+                                        d_current.target, d_current.r_comments, multi_line_title=True)
+        self.__add_empty_line(h=h_line)
+        h += h_line * 2
+        d_prev, d_current = get_prev_and_current_month_data(options, '10_03')
+        self.__create_request_table_row(x, h, w, h_line,
+                                        text.WHISTLEBLOWING_REQUESTS_RECEIVED_THAT_PROGRESS_UNDER_THE_BOUNDARIES_OF_THE_POLICY,
+                                        d_prev.result, d_current.result,
+                                        d_current.target, d_current.r_comments, multi_line_title=True)
+        self.__add_empty_line(h=h_line)
+        h += h_line * 2
+        return h
+
+    def __do_compose_request_table(self, x, h, w, options):
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_11')
+
+        h = self.__create_request_governance_table_header(x, h, w, 5, text.REQUESTS_IN_TIMESCALE,
+                                                          d_prev.month[-3:].title(), d_current.month[-3:].title())
+
+        h_line = 4
+        self.__create_request_table_row(x, h, w, h_line, text.FREEDOM_OF_INFORMATION, d_prev.result, d_current.result,
+                                        d_current.target, d_current.r_comments)
+
+        d_prev, d_current = get_prev_and_current_month_data(options, '9_12')
+        h += h_line
+        self.__create_request_table_row(x, h, w, h_line, text.SUBJECT_ACCESS_REQUESTS, d_prev.result, d_current.result,
+                                        d_current.target, d_current.r_comments)
+        h += h_line
+        return h
+
+    def __create_request_governance_table_header(self, x, h, w, h_line, title, p_month, c_month):
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w * 0.15, h=h_line, txt=title, align='L', fill=1)
+        self.report.cell(w * 0.1, h=h_line, txt=p_month, align='C', fill=1)
+        self.report.cell(w * 0.1, h=h_line, txt=c_month, align='C', fill=1)
+        self.report.cell(w * 0.1, h=h_line, txt=text.DOT, align='C', fill=1)
+        self.report.cell(w * 0.1, h=h_line, txt=text.VARIANCE, align='C', fill=1)
+        self.report.cell(w * 0.1, h=h_line, txt=text.TARGET, align='C', fill=1)
+        self.report.cell(w * 0.35, h=h_line, txt=text.COMMENTARY, align='L', fill=1)
+
+        return h + h_line
+
+    def __create_request_table_row(self, x, h, w, h_line, title, p_value, c_value, target, comment,
+                                   multi_line_title=False):
+        self.report.set_xy(x, h)
+        self.__set_font(size=5)
+
+        p_value, c_value = self.__adjust_prev_current_values(p_value, c_value, is_percentage=True)
+        tmp, target = self.__adjust_prev_current_values(0.0, target, is_percentage=True)
+        variance, dot = get_variance_and_dot(p_value, c_value)
+
+        if multi_line_title:
+            self.report.multi_cell(w * 0.15, h=h_line / 2, txt=title, align='L')
+        else:
+            self.report.cell(w * 0.15, h=h_line, txt=title, align='L')
+        self.report.cell(w * 0.1, h=h_line, txt='{:.2f}%'.format(p_value), align='C')
+        self.report.cell(w * 0.1, h=h_line, txt='{:.2f}%'.format(c_value), align='C')
+        self.report.cell(w * 0.1, h=h_line, txt='{}'.format(dot), align='C')
+        self.report.cell(w * 0.1, h=h_line, txt='{:.2f}%'.format(variance), align='C')
+        self.report.cell(w * 0.1, h=h_line, txt='{:.2f}%'.format(target), align='C')
+        self.report.cell(w * 0.35, h=h_line,
+                         txt='{}'.format(parse_comment(comment, size=70, remove_line_feeds=True)),
+                         align='L')
 
     def __do_compose_corporate_risks(self, h, options):
         graph_size = (220, 183)
         self.report.set_xy(7.5, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        self.report.image(options.images[RISK_MAP], x=8, y=h + 0.5, w=graph_size[0] - 1,
-                          h=graph_size[1] - 1)
+        self.__add_image(options, RISK_MAP, x=8, y=h + 0.5, w=graph_size[0] - 1, h=graph_size[1] - 1)
         return h + graph_size[1]
 
     def __do_compose_customer_relationships(self, h_orig, options):
         graph_size = (220, 83)
         h = h_orig
-        self.report.set_xy(7.5, h)
+        x = 7.5
+        self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
 
-        h = self.__do_compose_customer_rel_table(8, h + 2, graph_size[0], options)
+        h = self.__do_compose_customer_rel_table(x + 0.5, h + 2, graph_size[0], options)
         h += 5
-        self.__do_compose_complaints_table(8, h, graph_size[0], options)
+        self.__do_compose_complaints_table(x, h, graph_size[0], options)
 
         return h_orig + graph_size[1]
 
@@ -159,85 +423,85 @@ class PDFReporter(RGReporterBase):
         self.__do_compose_no_responded_table(x + w_table * 2, h, w_table, d_dcsc_4_prev, d_dcsc_4_current)
         self.__do_compose_percent_responded_table(x + w_table * 3, h, w_table, d_dcsc_7_prev, d_dcsc_7_current)
 
-    def set_complaint_table_xy(self, x, y, h_line):
+    def __set_table_row_xy(self, x, y, h_line):
         y += h_line
         self.report.set_xy(x, y)
         return y
 
     def __do_compose_complaints_name_table(self, x, h, w):
-        self.report.set_xy(x, h)
         h_line = 8
         self.__set_font(size=6, is_bold=True)
-        self.report.cell(w, h=h_line, txt=text.COMPLAINTS, border='R', align='C')
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x + 0.125, h=h)
+        self.report.cell(w, h=h_line, txt=text.COMPLAINTS, align='C', fill=1)
 
         self.__set_font(size=6)
         h += h_line - 4
         h_line = 4
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.ADULT_SOCIAL_CARE, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.CHILDRENS_TRUST, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.EDUCATION_AND_SKILLS, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.INCLUSIVE_GROWTH, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.FINANCE_AND_GOVERNANCE, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.NEIGHBOURHOODS, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.DIGITAL_AND_CUSTOMER_SERVICES, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.HUMAN_RESOURCES, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.PARTNERSHIP_INSIGHT_AND_PREVENTION, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.COMMONWEALTH_GAMES, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
-        self.report.cell(w, h=h_line, txt=text.UNASSIGNED, border='R', align='L')
-        h = self.set_complaint_table_xy(x, h, h_line)
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.ADULT_SOCIAL_CARE, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.CHILDRENS_TRUST, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.EDUCATION_AND_SKILLS, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.INCLUSIVE_GROWTH, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.FINANCE_AND_GOVERNANCE, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.NEIGHBOURHOODS, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.DIGITAL_AND_CUSTOMER_SERVICES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.HUMAN_RESOURCES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.PARTNERSHIP_INSIGHT_AND_PREVENTION, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.COMMONWEALTH_GAMES, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
+        self.report.cell(w, h=h_line, txt=text.UNASSIGNED, align='L')
+        h = self.__set_table_row_xy(x, h, h_line)
         self.__set_font(size=6, is_bold=True)
-        self.report.cell(w, h=h_line, txt='    {}'.format(text.TOTAL_COMPLAINTS), border='R', align='L')
+        self.report.cell(w, h=h_line, txt='    {}'.format(text.TOTAL_COMPLAINTS), align='L')
 
-    def __do_compose_percent_responded_table(self, x, h, w_table, d_prev, d_current):
-        self.report.set_xy(x, h)
+    def __do_compose_percent_responded_table(self, x, h, w, d_prev, d_current):
         h_line = 8
         self.__set_font(size=6, is_bold=True)
-        self.report.cell(w_table, h=h_line, txt=text.PERCENT_RESPONDED_IN_15_WORKING_DAYS, border='R', align='C')
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w - 0.125, h=h_line, txt=text.PERCENT_RESPONDED_IN_15_WORKING_DAYS, align='C', fill=1)
 
         h += h_line
         h_line = 4
 
         self.report.set_xy(x, h)
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.DOT, align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
+        self.report.cell(w * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
 
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.adult_social_care,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.adult_social_care,
                                                       d_current.adult_social_care)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.childrens_trust,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.childrens_trust,
                                                       d_current.childrens_trust)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.education_and_skills,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.education_and_skills,
                                                       d_current.education_and_skills)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.inclusive_growth,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.inclusive_growth,
                                                       d_current.inclusive_growth)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.finance_and_governance,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.finance_and_governance,
                                                       d_current.finance_and_governance)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.neighbourhoods,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.neighbourhoods,
                                                       d_current.neighbourhoods)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.digital_and_customer_services,
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.digital_and_customer_services,
                                                       d_current.digital_and_customer_services)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.hr_and_od, d_current.hr_and_od)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.pip, d_current.pip)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.cwg, d_current.cwg)
-        h = self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.unassigned, d_current.unassigned)
-        self.__create_percent_responded_table_row(x, h, w_table, h_line, d_prev.bcc, d_current.bcc, is_total=True)
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.hr_and_od, d_current.hr_and_od)
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.pip, d_current.pip)
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.cwg, d_current.cwg)
+        h = self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.unassigned, d_current.unassigned)
+        self.__create_percent_responded_table_row(x, h, w, h_line, d_prev.bcc, d_current.bcc, is_total=True)
 
     def __create_percent_responded_table_row(self, x, h, w, h_line, p_value, c_value, is_total=False):
-        h = self.set_complaint_table_xy(x, h, h_line)
+        h = self.__set_table_row_xy(x, h, h_line)
         self.__set_font(size=6, is_bold=is_total)
 
         p_value, c_value = self.__adjust_prev_current_values(p_value, c_value, is_percentage=True)
@@ -249,42 +513,42 @@ class PDFReporter(RGReporterBase):
         self.report.cell(w * 0.25, h=h_line, txt='{:.2f}%'.format(variance), align='C', border='R')
         return h
 
-    def __do_compose_no_responded_table(self, x, h, w_table, d_prev, d_current):
-        self.report.set_xy(x, h)
+    def __do_compose_no_responded_table(self, x, h, w, d_prev, d_current):
         h_line = 8
         self.__set_font(size=6, is_bold=True)
-        self.report.cell(w_table, h=h_line, txt=text.NO_RESPONDED_IN_15_WORKING_DAYS, border='R', align='C')
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w, h=h_line, txt=text.NO_RESPONDED_IN_15_WORKING_DAYS, align='C', fill=1)
 
         h += h_line
         h_line = 4
 
         self.report.set_xy(x, h)
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.DOT, align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
+        self.report.cell(w * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
 
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.adult_social_care,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.adult_social_care,
                                                  d_current.adult_social_care)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.childrens_trust,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.childrens_trust,
                                                  d_current.childrens_trust)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.education_and_skills,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.education_and_skills,
                                                  d_current.education_and_skills)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.inclusive_growth,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.inclusive_growth,
                                                  d_current.inclusive_growth)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.finance_and_governance,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.finance_and_governance,
                                                  d_current.finance_and_governance)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.digital_and_customer_services,
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.digital_and_customer_services,
                                                  d_current.digital_and_customer_services)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.hr_and_od, d_current.hr_and_od)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.pip, d_current.pip)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.cwg, d_current.cwg)
-        h = self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.unassigned, d_current.unassigned)
-        self.__create_no_responded_table_row(x, h, w_table, h_line, d_prev.bcc, d_current.bcc, is_total=True)
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.hr_and_od, d_current.hr_and_od)
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.pip, d_current.pip)
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.cwg, d_current.cwg)
+        h = self.__create_no_responded_table_row(x, h, w, h_line, d_prev.unassigned, d_current.unassigned)
+        self.__create_no_responded_table_row(x, h, w, h_line, d_prev.bcc, d_current.bcc, is_total=True)
 
     def __create_no_responded_table_row(self, x, h, w, h_line, p_value, c_value, is_total=False):
-        h = self.set_complaint_table_xy(x, h, h_line)
+        h = self.__set_table_row_xy(x, h, h_line)
         self.__set_font(size=6, is_bold=is_total)
 
         p_value, c_value = self.__adjust_prev_current_values(p_value, c_value)
@@ -296,39 +560,39 @@ class PDFReporter(RGReporterBase):
         self.report.cell(w * 0.25, h=h_line, txt='{}'.format(variance), align='C', border='R')
         return h
 
-    def __do_compose_volume_table(self, x, h, w_table, d_prev, d_current):
-        self.report.set_xy(x, h)
+    def __do_compose_volume_table(self, x, h, w, d_prev, d_current):
         h_line = 8
         self.__set_font(size=6, is_bold=True)
-        self.report.cell(w_table, h=h_line, txt=text.VOLUME, border='R', align='C')
+        self.__create_scorecard_top(add_first=False, add_second=False, add_third=True, x=x, h=h)
+        self.report.cell(w, h=h_line, txt=text.VOLUME, align='C', fill=1)
 
         h += h_line
         h_line = 4
 
         self.report.set_xy(x, h)
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.DOT, align='C')
-        self.report.cell(w_table * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
+        self.report.cell(w * 0.25, h=h_line, txt=d_prev.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=d_current.month[-3:].title(), align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.DOT, align='C')
+        self.report.cell(w * 0.25, h=h_line, txt=text.VARIANCE, align='C', border='R')
 
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.adult_social_care, d_current.adult_social_care)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.childrens_trust, d_current.childrens_trust)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.education_and_skills,
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.adult_social_care, d_current.adult_social_care)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.childrens_trust, d_current.childrens_trust)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.education_and_skills,
                                            d_current.education_and_skills)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.inclusive_growth, d_current.inclusive_growth)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.finance_and_governance,
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.inclusive_growth, d_current.inclusive_growth)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.finance_and_governance,
                                            d_current.finance_and_governance)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.digital_and_customer_services,
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.neighbourhoods, d_current.neighbourhoods)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.digital_and_customer_services,
                                            d_current.digital_and_customer_services)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.hr_and_od, d_current.hr_and_od)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.pip, d_current.pip)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.cwg, d_current.cwg)
-        h = self.__create_volume_table_row(x, h, w_table, h_line, d_prev.unassigned, d_current.unassigned)
-        self.__create_volume_table_row(x, h, w_table, h_line, d_prev.bcc, d_current.bcc, is_total=True)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.hr_and_od, d_current.hr_and_od)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.pip, d_current.pip)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.cwg, d_current.cwg)
+        h = self.__create_volume_table_row(x, h, w, h_line, d_prev.unassigned, d_current.unassigned)
+        self.__create_volume_table_row(x, h, w, h_line, d_prev.bcc, d_current.bcc, is_total=True)
 
     def __create_volume_table_row(self, x, h, w, h_line, p_value, c_value, is_total=False):
-        h = self.set_complaint_table_xy(x, h, h_line)
+        h = self.__set_table_row_xy(x, h, h_line)
         self.__set_font(size=6, is_bold=is_total)
 
         p_value, c_value = self.__adjust_prev_current_values(p_value, c_value)
@@ -669,16 +933,14 @@ class PDFReporter(RGReporterBase):
         graph_size = (220, 33)
         self.report.set_xy(7.5, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        self.report.image(options.images[WORKFORCE_EXPENDITURE], x=8, y=h + 0.5, w=graph_size[0] - 1,
-                          h=graph_size[1] - 1)
+        self.__add_image(options, WORKFORCE_EXPENDITURE, x=8, y=h + 0.5, w=graph_size[0] - 1, h=graph_size[1] - 1)
         return h + graph_size[1]
 
     def __do_compose_school_table(self, x, h, options):
         graph_size = (75, 83)
         self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        self.report.image(options.images[SCHOOLS_IN_DEFICIT], x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1,
-                          h=graph_size[1] / 2)
+        self.__add_image(options, SCHOOLS_IN_DEFICIT, x=x + 0.5, y=h + 0.5, w=graph_size[0] - 1, h=graph_size[1] / 2)
 
         entity = get_entity_by_m_id(options.entities, '10_05')
         comment = ''
@@ -1207,7 +1469,7 @@ class PDFReporter(RGReporterBase):
         self.__compose_key_results_actions(h, options.entities, m_id='PMT_01')
 
         self.report.set_xy(273, h + 0.5)
-        self.report.image(options.images[LEGEND], x=None, y=None, w=139, h=59, type='', link='')
+        self.__add_image(options, LEGEND, w=139, h=59)
 
     def __compose_measure_summary(self, h, entities, is_cpm=True):
         if is_cpm:
@@ -1412,7 +1674,6 @@ class PDFReporter(RGReporterBase):
 
         if add_third:
             self.__set_font(size=5, is_bold=True)
-
             self.report.set_xy(x, h)
             color = get_color(LIGHT_AQUA)
             self.report.set_fill_color(color.r, color.g, color.b)
@@ -1456,9 +1717,9 @@ class PDFReporter(RGReporterBase):
         if n_cells > 5:
             self.report.cell(w=135, h=118, border=1, ln=2)
 
-    def __add_empty_line(self):
+    def __add_empty_line(self, h=1):
         self.__set_font(size=5)
-        self.report.cell(0, 1, ' ', 0, 2, 'C')
+        self.report.cell(0, h=h, txt=' ', ln=2, align='C')
 
     def __set_font(self, family=REPORT_FONT, is_bold=False, size=5):
         if is_bold:

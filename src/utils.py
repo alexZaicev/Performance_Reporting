@@ -504,16 +504,20 @@ def get_outcome_priority(outcome):
     return 9999
 
 
-def parse_comment(text):
-    if text is not None:
-        if len(text) > 1950:
-            text = '{}...'.format(text[:1950])
-        elif len(text.split('\n')) > 18:
-            lines = text.split('\n')
-            new_text = ''
-            for i in range(0, 18, 1):
-                new_text += '{}\n'.format(lines[i])
-            text = new_text
+def parse_comment(text, size=1950, n_line=18, remove_line_feeds=False):
+    if text is None:
+        text = ''
+    text = text.strip()
+    if remove_line_feeds:
+        text = text.replace('\r\n', ' ').replace('\n', ' ')
+    if len(text) > size:
+        text = '{}...'.format(text[:size])
+    elif len(text.split('\n')) > n_line:
+        lines = text.split('\n')
+        new_text = ''
+        for i in range(0, n_line, 1):
+            new_text += '{}\n'.format(lines[i])
+        text = new_text
     return text
 
 

@@ -1,8 +1,8 @@
 from abc import ABC
 
+from constants import FISCAL_YEAR, MEASURE_ID, MEASURE_REF_NO, MEASURE_TITLE, MEASURE, MONTH
 from models.errors import RGError
 from utils import get_val
-from constants import FISCAL_YEAR, MEASURE_ID, MEASURE_REF_NO, MEASURE_TITLE, MEASURE, MONTH
 
 
 class RGModelBase(ABC):

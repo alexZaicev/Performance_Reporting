@@ -1,18 +1,13 @@
-from constants import CPM, SDM, SSG
-from models.errors import RGError
-from models.measures import CpmMeasure, SdmMeasure, SsgMeasure
+from common.constants import CPM, SDM, SSG
+from common.models.errors import RGError
+from common.utility_base import RGUtilityBase
+from common.models.measures import CpmMeasure, SdmMeasure, SsgMeasure
 
 
-class RGMeasureFactory(object):
+class RGMeasureFactory(RGUtilityBase):
     """
     RG measure factory
     """
-
-    def __init__(self):
-        raise RGError('Factory classes cannot be initialized')
-
-    def __new__(cls):
-        raise RGError('Factory classes cannot be initialized')
 
     @staticmethod
     def create_measure(m_type=None, df=None):

@@ -8,10 +8,10 @@ from matplotlib import font_manager
 from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
-import text as text
-from models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
-from reporters.reporter_base import RGReporterBase
-from utils import *
+from common import text as text
+from common.models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
+from reporter_tool.reporters.reporter_base import RGReporterBase
+from common.utils import *
 
 
 class PDFReporter(RGReporterBase):

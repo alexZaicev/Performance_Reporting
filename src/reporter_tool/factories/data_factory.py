@@ -1,19 +1,12 @@
-from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES, DCS_COMPLAINTS
-from models.datas import CpmData, SdmData, SsgData, PmtAdditionalData, HrScorecardData, HrAbsencesData, HrTrainingData, \
-    HrSicknessData, DcsComplaintsData
-from models.errors import RGError
+from common.utility_base import RGUtilityBase
+from common.models.datas import *
+from common.models.errors import RGError
 
 
-class RGDataFactory(object):
+class RGDataFactory(RGUtilityBase):
     """
     RG data factory
     """
-
-    def __init__(self):
-        raise RGError('Factory classes cannot be initialized')
-
-    def __new__(cls):
-        raise RGError('Factory classes cannot be initialized')
 
     @staticmethod
     def create_data(m_type=None, df=None):

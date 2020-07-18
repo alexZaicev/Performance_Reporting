@@ -1,19 +1,12 @@
-from constants import SSG, PMT_ADDITIONAL, CPM, SDM, HR_SCORECARD, HR_ABSENCES, HR_TRAINING, HR_SICKNESS, DCS_COMPLAINTS
-from models.entities import CpmEntity, SdmEntity, SsgEntity, PmtAdditionalEntity, HrScorecardEntity, HrAbsencesEntity, \
-    HrSicknessEntity, HrTrainingEntity, DcsComplaintsEntity
-from models.errors import RGError
+from common.models.errors import RGError
+from common.utility_base import RGUtilityBase
+from common.models.entities import *
 
 
-class RGEntityFactory(object):
+class RGEntityFactory(RGUtilityBase):
     """
     RG entity factory
     """
-
-    def __init__(self):
-        raise RGError('Factory classes cannot be initialized')
-
-    def __new__(cls):
-        raise RGError('Factory classes cannot be initialized')
 
     @staticmethod
     def create_entity(m_type=None, data_cfy=None, data_lfy=None, measure_cfy=None, measure_lfy=None):

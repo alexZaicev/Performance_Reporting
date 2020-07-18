@@ -1,4 +1,4 @@
-from models.errors import RGError
+from common.models.errors import RGError
 
 
 class RGColor(object):
@@ -75,3 +75,19 @@ class RGFileContainer(object):
                         if str(file.fym) <= str(fym):
                             return file
         return None
+
+
+class RGConfig(object):
+
+    def __init__(self, out_dir=None, template_dir=None, measure_entries=None):
+        self.out_dir = out_dir
+        self.template_dir = template_dir
+        self.measure_entries = measure_entries
+
+
+class RGMeasureEntry(object):
+
+    def __init__(self, m_id=None, m_ref_no=None, m_title=None):
+        self.m_id = m_id
+        self.m_ref_no = m_ref_no
+        self.m_title = m_title

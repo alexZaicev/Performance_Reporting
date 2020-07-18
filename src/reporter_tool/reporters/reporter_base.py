@@ -3,10 +3,10 @@ import os
 import shutil
 from abc import ABC, abstractmethod
 
-from constants import REPORT_NAME, TEMP
-from models.errors import RGError
-from models.utilities import RGReporterOptions
-from utils import get_dir_path
+from common.constants import REPORT_NAME, TEMP
+from common.models.errors import RGError
+from common.models.utilities import RGReporterOptions
+from common.utils import get_dir_path
 
 
 class RGReporterBase(ABC):

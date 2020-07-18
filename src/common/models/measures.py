@@ -1,6 +1,6 @@
-from constants import *
-from models.model_base import RGModelBase
-from utils import get_val
+from common.constants import *
+from common.models.model_base import RGModelBase
+from common.utils import get_val
 
 
 class RGMeasureBase(RGModelBase):

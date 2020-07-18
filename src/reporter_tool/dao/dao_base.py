@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from models.errors import RGError
+from common.models.errors import RGError
 
 
 class RGDaoBase(ABC):

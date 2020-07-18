@@ -6,9 +6,9 @@ from os.path import dirname, abspath, join
 
 from pandas import NaT, to_datetime
 
-from constants import *
-from models.errors import RGError
-from text import NOT_APPLICABLE, PERCENTAGE, NUMBER
+from common.constants import *
+from common.models.errors import RGError
+from common.text import NOT_APPLICABLE, PERCENTAGE, NUMBER
 
 
 def timestamp():
@@ -49,7 +49,11 @@ def get_prev_fiscal_month(month=None, fm=None):
 
 
 def get_dir_path(name=ROOT):
-    base = dirname(abspath(__file__)).replace('{}src'.format(os.path.sep), '')
+    base = dirname(abspath(__file__)) \
+        .replace('{}src'.format(os.path.sep), '') \
+        .replace('{}common'.format(os.path.sep), '') \
+        .replace('{}report_ui'.format(os.path.sep), '') \
+        .replace('{}report_tool'.format(os.path.sep), '')
     DIR_PATH = {
         ROOT: base,
         RESOURCES: join(base, 'resources'),
@@ -73,7 +77,7 @@ def get_font(name=DEJAVU_SANS):
 
 
 def get_color(name=BLACK):
-    from models.utilities import RGColor
+    from common.models.utilities import RGColor
     COLOR_MAP = {
         WHITE: RGColor(255, 255, 255),
         BLACK: RGColor(),

@@ -1,11 +1,11 @@
 import logging
 from abc import ABC
 
-from constants import LEGEND, OFSTED, RISK_MAP, WORKFORCE_EXPENDITURE, SCHOOLS_IN_DEFICIT, FINAL_AUDIT_REPORT
-from dao.dao_base import RGDaoBase
-from models.errors import RGError
-from models.utilities import RGFile, RGFileContainer
-from utils import try_parse, get_cfy_prefix
+from common.constants import LEGEND, OFSTED, RISK_MAP, WORKFORCE_EXPENDITURE, SCHOOLS_IN_DEFICIT, FINAL_AUDIT_REPORT
+from reporter_tool.dao.dao_base import RGDaoBase
+from common.models.errors import RGError
+from common.models.utilities import RGFile, RGFileContainer
+from common.utils import try_parse, get_cfy_prefix
 
 
 class FileDao(RGDaoBase, ABC):

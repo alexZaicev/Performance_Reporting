@@ -1,6 +1,6 @@
 from abc import ABC
 
-from constants import CPM, SDM, SSG, PMT_ADDITIONAL, HR_SCORECARD, HR_TRAINING, HR_SICKNESS, HR_ABSENCES, DCS_COMPLAINTS
+from common.constants import *
 
 
 class RGEntityBase(ABC):

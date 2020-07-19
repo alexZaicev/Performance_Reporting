@@ -17,7 +17,7 @@ def __main(arg0=None):
     fm_id = get_fiscal_month_id(arg0.month)
     dao = ExcelTemplateDao(year=arg0.year, month=fm_id, path=arg0.templates_root)
     f_dao = ImageFileDao(year=arg0.year, month=fm_id, path=arg0.templates_root)
-    reporter = PDFReporter()
+    reporter = PDFReporter(orca_path=arg0.orca_path)
     try:
         options = RGReporterOptions(entities=dao.get_entities(),
                                     exclusions=arg0.exclusions,
@@ -50,6 +50,8 @@ def __arg_parser():
                         help='List of measure IDs to be excluded from the report', dest='exclusions')
     parser.add_argument('-o', '--output', default=get_dir_path(OUTPUT), action='store', type=str,
                         help='Report output directory', dest='out_dir')
+    parser.add_argument('--orca', default=None, action='store', type=str,
+                        help='Path to orca executable file', dest='orca_path')
     return parser.parse_args()
 
 

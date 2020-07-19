@@ -26,13 +26,14 @@ class RGColor(object):
 
 class RGReporterOptions(object):
 
-    def __init__(self, entities=None, exclusions=None, out_dir=None, images=None, fym=None):
+    def __init__(self, entities=None, exclusions=None, out_dir=None, images=None, fym=None, orca_path=None):
         object.__init__(self)
         self.entities = entities
         self.exclusions = exclusions
         self.out_dir = out_dir
         self.images = images
         self.fym = fym
+        self.orca_path = orca_path
 
 
 class RGFile(object):

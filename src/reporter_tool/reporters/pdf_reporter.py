@@ -3,6 +3,7 @@ import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.io.orca as orca
 from fpdf import FPDF
 from matplotlib import font_manager
 from matplotlib.ticker import PercentFormatter
@@ -16,7 +17,7 @@ from common.utils import *
 
 class PDFReporter(RGReporterBase):
 
-    def __init__(self):
+    def __init__(self, orca_path=None):
         RGReporterBase.__init__(self)
         # starting coordinates for each page
         self.left_top = (10, 30)
@@ -24,6 +25,9 @@ class PDFReporter(RGReporterBase):
         self.graph_size = (135, 118)
         # grid mapping for small charts
         self.grid_size = (2, 3)
+        # set plotly.io.orca.config.executable
+        if orca_path is not None:
+            orca.config.executable = orca_path
 
     def do_init(self):
         super().do_init()

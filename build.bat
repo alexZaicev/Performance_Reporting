@@ -4,7 +4,6 @@ cls
 
 :: Check for Python Installation
 python --version 2> NUL
-
 if %ERRORLEVEL% NEQ 0 echo Python v3+ is not installed on your machine
 if %ERRORLEVEL% NEQ 0 exit %ERRORLEVEL%
 

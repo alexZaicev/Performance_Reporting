@@ -12,6 +12,7 @@ clear
   fi
 
   pyinstaller -v 2> /dev/null
+
   if  [[ $? -eq 1 ]]; then
     echo "PyInstaller is not installed"
 

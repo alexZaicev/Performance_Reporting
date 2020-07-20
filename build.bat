@@ -40,4 +40,5 @@ if exist build (
 if exist dist (
     rmdir /s /q dist
 )
-pyinstaller reporter.spec
+set PYTHONPATH=%cd%\src
+pyinstaller reporter_win.spec

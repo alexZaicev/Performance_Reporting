@@ -31,6 +31,8 @@ clear
 
   rm -rf build dist
 
+  export PYTHONPATH="$SCRIPT_DIR/src"
+
   pyinstaller reporter.spec
 
 } | tee build.log

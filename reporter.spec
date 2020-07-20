@@ -3,8 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['src\\reporter_ui\\main.py'],
-             pathex=['C:\\Users\\u722245\\REPOS\\GIT\\Performance_Reporting'],
+a = Analysis(['src/reporter_ui/main.py'],
              binaries=[],
              datas=[
                 ('resources', 'resources'),

@@ -8,3 +8,6 @@ numpy~=1.19.0
 psutil~=5.7.2
 future~=0.18.2
 PyInstaller~=3.6
+lxml~=4.5.2
+xmlschema~=1.2.2
+rstr~=2.2.6

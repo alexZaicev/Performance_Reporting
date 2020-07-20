@@ -7,6 +7,7 @@
 			<xs:sequence>
 				<xs:element name="out_dir" type="xs:string"/>
 				<xs:element name="template_dir" type="xs:string"/>
+				<xs:element name="orca_path" type="xs:string"/>
 				<xs:element name="measures">
 					<xs:complexType>
 						<xs:sequence>

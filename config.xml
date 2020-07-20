@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <configuration>
-	<out_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</out_dir>
-	<template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</template_dir>
-	<measures>
-		<measure id="1_01" ref_no="CMP1" title="This is CMP1 measure" />
-		<measure id="1_02" ref_no="CMP2" title="This is CMP2 measure" />
-		<measure id="1_03" ref_no="CMP3" title="This is CMP3 measure" />
-		<measure id="1_04" ref_no="CMP4" title="This is CMP4 measure" />
-		<measure id="1_05" ref_no="CMP5" title="This is CMP5 measure" />
-		<measure id="1_06" ref_no="CMP6" title="This is CMP6 measure" />
-	</measures>
+  <out_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</out_dir>
+  <template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</template_dir>
+  <orca_path>C:\Users\u722245\AppData\Local\Programs\orca\orca.exe</orca_path>
+  <measures>
+    <measure id="1_01" ref_no="CMP1" title="This is CMP1 measure"/>
+    <measure id="1_02" ref_no="CMP2" title="This is CMP2 measure"/>
+    <measure id="1_03" ref_no="CMP3" title="This is CMP3 measure"/>
+    <measure id="1_04" ref_no="CMP4" title="This is CMP4 measure"/>
+    <measure id="1_05" ref_no="CMP5" title="This is CMP5 measure"/>
+    <measure id="1_06" ref_no="CMP6" title="This is CMP6 measure"/>
+  </measures>
 </configuration>

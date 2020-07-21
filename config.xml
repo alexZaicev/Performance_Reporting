@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <configuration>
   <out_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</out_dir>
-  <template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</template_dir>
+  <template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\templates\Performance Management templates - OneDrive\Digital &amp; Customer Services</template_dir>
   <orca_path>C:\Users\u722245\AppData\Local\Programs\orca\orca.exe</orca_path>
+  <fiscal_year_band>15</fiscal_year_band>
   <measures>
     <measure id="1_01" ref_no="CMP1" title="This is CMP1 measure"/>
     <measure id="1_02" ref_no="CMP2" title="This is CMP2 measure"/>

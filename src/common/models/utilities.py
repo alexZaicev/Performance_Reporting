@@ -80,11 +80,15 @@ class RGFileContainer(object):
 
 class RGConfig(object):
 
-    def __init__(self, out_dir=None, template_dir=None, measure_entries=None, orca_path=None):
+    def __init__(self, out_dir=None, template_dir=None, measure_entries=None, orca_path=None, fy_band=None, f_year=None,
+                 f_month=None):
         self.out_dir = out_dir
         self.template_dir = template_dir
         self.measure_entries = measure_entries
         self.orca_path = orca_path
+        self.fy_band = fy_band
+        self.f_year = f_year
+        self.f_month = f_month
 
 
 class RGMeasureEntry(object):

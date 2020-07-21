@@ -21,6 +21,7 @@ class RGConfigManager(RGUtilityBase):
     XML_ATTR_REF_NO = 'ref_no'
     XML_ATTR_TITLE = 'title'
     XML_CONFIGURATION = 'configuration'
+    XML_FISCAL_YEAR_BAND = 'fiscal_year_band'
 
     @staticmethod
     def read_config():
@@ -92,6 +93,8 @@ class RGConfigManager(RGUtilityBase):
                     config.template_dir = node.text
                 elif node.tag == RGConfigManager.XML_ORCA_PATH:
                     config.orca_path = node.text
+                elif node.tag == RGConfigManager.XML_FISCAL_YEAR_BAND:
+                    config.fy_band = int(node.text)
                 elif node.tag == RGConfigManager.XML_MEASURES:
                     measures = list()
                     for c_node in node:
@@ -123,6 +126,10 @@ class RGConfigManager(RGUtilityBase):
             orca_path = l_etree.Element(RGConfigManager.XML_ORCA_PATH)
             orca_path.text = config.orca_path
             tree.append(orca_path)
+
+            fy_band = l_etree.Element(RGConfigManager.XML_FISCAL_YEAR_BAND)
+            fy_band.text = str(config.fy_band)
+            tree.append(fy_band)
 
             measures = l_etree.Element(RGConfigManager.XML_MEASURES)
             for m_entry in config.measure_entries:

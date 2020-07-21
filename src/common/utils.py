@@ -88,7 +88,8 @@ def get_color(name=BLACK):
         GREY: RGColor(r=128, g=128, b=128),
         DARK_BLUE: RGColor(r=31, g=73, b=125),
         AQUA: RGColor(r=83, g=141, b=213),
-        LIGHT_AQUA: RGColor(220, 230, 241)
+        LIGHT_AQUA: RGColor(220, 230, 241),
+        DIM_WHITE: RGColor(242, 242, 242)
     }
     try:
         return COLOR_MAP[name]

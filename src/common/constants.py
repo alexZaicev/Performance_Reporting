@@ -12,6 +12,7 @@ GREY = 'GREY'
 DARK_BLUE = 'DARK_BLUE'
 AQUA = 'AQUA'
 LIGHT_AQUA = 'LIGHT_AQUA'
+DIM_WHITE = 'DIM_WHITE'
 
 """
 Fonts
@@ -189,6 +190,9 @@ LOG = 'LOG'
 TEMPLATES = 'TEMPLATES'
 OUTPUT = 'OUTPUT'
 RESOURCES_FONTS = 'RESOURCES_FONTS'
+
+APPLICATION_NAME = 'Performance Reporting Tool {}'
+VERSION = 'v1.0'
 
 """
 Image file names

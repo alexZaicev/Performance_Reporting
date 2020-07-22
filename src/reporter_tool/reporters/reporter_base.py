@@ -28,13 +28,13 @@ class RGReporterBase(ABC):
     def generate(self, options=None):
         if options is None or not isinstance(options, RGReporterOptions):
             raise RGError('Invalid report options provided')
-        logging.info('Generating report...')
+        logging.getLogger(__name__).info('Generating report...')
         self.do_init()
         self.do_compose(options=options)
         self.do_prepare_export(out_dir=options.out_dir)
         self.do_export(out_dir=options.out_dir)
         self.do_clean()
-        logging.info('Report successfully generated! [{}]'.format(options.out_dir))
+        logging.getLogger(__name__).info('Report successfully generated! [{}]'.format(options.out_dir))
 
     @abstractmethod
     def do_compose(self, options=None):

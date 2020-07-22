@@ -22,6 +22,7 @@ class RGConfigManager(RGUtilityBase):
     XML_ATTR_TITLE = 'title'
     XML_CONFIGURATION = 'configuration'
     XML_FISCAL_YEAR_BAND = 'fiscal_year_band'
+    XML_DEBUG_MODE = 'debug_mode'
 
     @staticmethod
     def read_config():
@@ -35,7 +36,7 @@ class RGConfigManager(RGUtilityBase):
         except RGUIError as ex:
             raise ex
         except Exception as ex:
-            logging.error('Configuration manager could not read reporter configuration file [{}]'.format(str(ex)))
+            logging.getLogger(__name__).error('Configuration manager could not read reporter configuration file [{}]'.format(str(ex)))
             raise RGUIError(REPORTER_COULD_NOT_READ_THE_CONFIGURATION_FILE)
         return config
 
@@ -55,7 +56,7 @@ class RGConfigManager(RGUtilityBase):
                 ff.write(s_config)
 
         except Exception as ex:
-            logging.error('Configuration manager could not save reporter configuration file [{}]'.format(str(ex)))
+            logging.getLogger(__name__).error('Configuration manager could not save reporter configuration file [{}]'.format(str(ex)))
             raise RGUIError(CONFIGURATION_COULD_NOT_BE_SAVED)
 
     @staticmethod
@@ -74,10 +75,10 @@ class RGConfigManager(RGUtilityBase):
             tree = l_etree.fromstring(s_xml.encode(encoding='UTF-8'), parser)
 
         except l_etree.XMLSyntaxError as ex:
-            logging.error('Configuration contains invalid tags/data [{}]'.format(str(ex)))
+            logging.getLogger(__name__).error('Configuration contains invalid tags/data [{}]'.format(str(ex)))
             raise RGUIError(CONFIGURATION_FILE_CONTAINS_INVALID_XML_TAGS_OR_DATA)
         except Exception as ex:
-            logging.error('Reporter could not validate configuration file [{}]'.format(str(ex)))
+            logging.getLogger(__name__).error('Reporter could not validate configuration file [{}]'.format(str(ex)))
             raise RGUIError(REPORTER_COULD_NOT_VALIDATE_CONFIGURATION_FILE)
         return tree
 
@@ -95,6 +96,8 @@ class RGConfigManager(RGUtilityBase):
                     config.orca_path = node.text
                 elif node.tag == RGConfigManager.XML_FISCAL_YEAR_BAND:
                     config.fy_band = int(node.text)
+                elif node.tag == RGConfigManager.XML_DEBUG_MODE:
+                    config.debug_mode = bool(node.text.title())
                 elif node.tag == RGConfigManager.XML_MEASURES:
                     measures = list()
                     for c_node in node:
@@ -130,6 +133,10 @@ class RGConfigManager(RGUtilityBase):
             fy_band = l_etree.Element(RGConfigManager.XML_FISCAL_YEAR_BAND)
             fy_band.text = str(config.fy_band)
             tree.append(fy_band)
+
+            debug_mode = l_etree.Element(RGConfigManager.XML_DEBUG_MODE)
+            debug_mode.text = str(config.debug_mode).lower()
+            tree.append(debug_mode)
 
             measures = l_etree.Element(RGConfigManager.XML_MEASURES)
             for m_entry in config.measure_entries:

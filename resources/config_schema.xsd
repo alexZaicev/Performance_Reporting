@@ -9,6 +9,7 @@
 				<xs:element name="template_dir" type="xs:string"/>
 				<xs:element name="orca_path" type="xs:string"/>
 				<xs:element name="fiscal_year_band" type="xs:integer"/>
+				<xs:element name="debug_mode" type="xs:boolean"/>
 				<xs:element name="measures">
 					<xs:complexType>
 						<xs:sequence>

@@ -1,3 +1,4 @@
+from common.logger import set_level
 from common.models.errors import RGError, RGUIError
 from common.models.utilities import RGConfig, RGReporterOptions
 from common.utility_base import RGUtilityBase
@@ -14,12 +15,13 @@ class RGToolManager(RGUtilityBase):
         if config is None or not isinstance(config, RGConfig):
             raise RGError('RGConfig expected, actual [{}]'.format(type(config)))
         try:
+            set_level(debug=config.debug_mode)
             # convert configuration to report options
             options = RGToolManager.__parse_config_to_options(config)
             # generate report
             PDFReporter(orca_path=options.orca_path).generate(options)
         except RGError as ex:
-            # catch errors from reporter tool and convert them to UI errors
+            # catch errors fro  m reporter tool and convert them to UI errors
             raise RGUIError(str(ex))
 
     @staticmethod
@@ -28,8 +30,8 @@ class RGToolManager(RGUtilityBase):
             out_dir=config.out_dir,
             orca_path=config.orca_path,
             exclusions=[x.m_id for x in config.measure_entries],
-            entities=RGToolManager.__get_entities(config.template_dir),
-            images=RGToolManager.__get_image_files(config.template_dir),
+            entities=RGToolManager.__get_entities(config),
+            images=RGToolManager.__get_image_files(config),
             fym=try_parse('{}{:02d}'.format(get_cfy_prefix(cfy=config.f_year).replace('-', ''), config.f_month),
                           is_int=True
                           )

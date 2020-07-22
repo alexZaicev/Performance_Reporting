@@ -60,7 +60,7 @@ class ExcelTemplateDao(RGDaoBase):
 
         templates = self.__validate_and_clean_templates(self.get_templates())
         for name in templates.keys():
-            logging.debug('Reading [{}] templates....'.format(name))
+            logging.getLogger(__name__).debug('Reading [{}] templates....'.format(name))
             for template in templates[name]:
                 try:
                     dict_template = pd.read_excel(template, sheet_name=[CURRENT_YEAR_DATA, CURRENT_YEAR_MEASURES],
@@ -120,7 +120,7 @@ class ExcelTemplateDao(RGDaoBase):
                             .str.cat(df_hr_training.loc[:, MONTH].str[1:3])
 
                     except XLRDError as e:
-                        logging.debug('Template does not contain HR specific data [{}]'.format(template, str(e)))
+                        logging.getLogger(__name__).debug('Template does not contain HR specific data [{}]'.format(template, str(e)))
 
                     # try parse DCS data
                     try:
@@ -136,10 +136,10 @@ class ExcelTemplateDao(RGDaoBase):
                         df_dcs_complaints.loc[:, YEAR_MONTH] = df_dcs_complaints.loc[:, FISCAL_YEAR] \
                             .str.replace("-", "").str.cat(df_dcs_complaints.loc[:, MONTH].str[1:3])
                     except XLRDError as e:
-                        logging.debug('Template does not contain DCS specific data [{}]'.format(template, str(e)))
+                        logging.getLogger(__name__).debug('Template does not contain DCS specific data [{}]'.format(template, str(e)))
 
                 except XLRDError as e:
-                    logging.debug('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
+                    logging.getLogger(__name__).debug('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
 
                     dict_template = pd.read_excel(template, sheet_name=[PMT_ADDITIONAL_DATA], encoding='utf-8')
                     temp = dict_template[PMT_ADDITIONAL_DATA]
@@ -158,7 +158,7 @@ class ExcelTemplateDao(RGDaoBase):
                 to_remove.append(name)
         for name in to_remove:
             del templates[name]
-            logging.debug(
+            logging.getLogger(__name__).debug(
                 'Template file [{}] has been removed, because current or last fiscal year report is not present'.format(
                     name))
         return templates
@@ -215,7 +215,7 @@ class ExcelTemplateDao(RGDaoBase):
         self.__parse_abnormal_data(df_hr_training, HR_TRAINING)
         self.__parse_abnormal_data(df_dcs_complaints, DCS_COMPLAINTS)
 
-        logging.debug('[{}] entities has been parsed'.format(len(self.__entities)))
+        logging.getLogger(__name__).debug('[{}] entities has been parsed'.format(len(self.__entities)))
 
     def __parse_abnormal_data(self, df, m_type):
         if df is None or df.size == 0:

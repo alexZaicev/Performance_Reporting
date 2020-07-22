@@ -29,7 +29,7 @@ def __main(arg0=None):
                                     )
         reporter.generate(options)
     except RGError as ex:
-        logging.error(str(ex))
+        logging.getLogger(__name__).error(str(ex))
 
 
 def __arg_parser():
@@ -58,5 +58,5 @@ def __arg_parser():
 if __name__ == '__main__':
     args = __arg_parser()
     init_logger(args.debug)
-    logging.info('PDF report generating tool')
+    logging.getLogger(__name__).info('PDF report generating tool')
     __main(args)

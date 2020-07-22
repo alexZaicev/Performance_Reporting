@@ -36,14 +36,14 @@ class RGApplication(RGApplicationBase):
         RGConfigManager.save_config(self.config)
 
     def __init_app(self):
-        self.__window.protocol('WM_DELETE_WINDOW', self.__close_app)
+        self.__window.protocol('WM_DELETE_WINDOW', self.close_app)
         self.__window.resizable(0, 0)
         self.__window.minsize(width=self.size[0], height=self.size[1])
         self.__window.geometry('{}x{}+0+0'.format(self.size[0], self.size[1]))
         self.__window.title(APPLICATION_NAME.format(VERSION))
         self.__window.configure(background=str(get_color(DIM_WHITE)))
 
-    def __close_app(self):
+    def close_app(self):
         if messagebox.askokcancel(CLOSE, ARE_YOU_SURE_YOU_WANT_TO_CLOSE_REPORTING_TOOL):
             self.pre_destroy()
             self.__window.destroy()

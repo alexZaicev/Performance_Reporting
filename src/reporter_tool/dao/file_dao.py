@@ -51,7 +51,7 @@ class ImageFileDao(FileDao):
             if f_type is not None:
                 images.append(self.create_file(f_type, str(ff), name))
             else:
-                logging.error('Could not get image file type from name [{}]'.format(name))
+                logging.getLogger(__name__).error('Could not get image file type from name [{}]'.format(name))
 
         return RGFileContainer(images)
 

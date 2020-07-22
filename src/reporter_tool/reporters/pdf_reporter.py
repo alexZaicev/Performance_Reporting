@@ -73,7 +73,7 @@ class PDFReporter(RGReporterBase):
         if f_image is not None:
             self.report.image(f_image.path, x=x, y=y, w=w, h=h)
         else:
-            logging.error(
+            logging.getLogger(__name__).error(
                 'Could not find image of type [{}] that would satisfy provided fiscal data [{}]'.format(f_type,
                                                                                                         options.fym))
 
@@ -1618,7 +1618,7 @@ class PDFReporter(RGReporterBase):
                 continue
             # check if entity should be excluded from the report
             if options.exclusions is not None and entity.measure_cfy.m_id in options.exclusions:
-                logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
+                logging.getLogger(__name__).debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
                 continue
             # check if coords are equal to initial left-top
             # then create new page
@@ -1909,7 +1909,7 @@ class PDFReporter(RGReporterBase):
         if baseline is not None:
             ax.plot(x_ticks, [baseline] * len(x_ticks), color='brown', zorder=4)
         else:
-            logging.error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
+            logging.getLogger(__name__).error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
 
         ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
         results = get_results_per_given_frequency(data_list, x_freq, x_ticks)

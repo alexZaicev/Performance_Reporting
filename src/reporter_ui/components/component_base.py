@@ -22,7 +22,7 @@ class RGComponentBase(ABC):
 
 class RGApplicationBase(RGComponentBase, ABC):
 
-    def __init__(self, config=None, width=1024, height=720):
+    def __init__(self, config=None, width=1024, height=860):
         RGComponentBase.__init__(self, config=config, is_window=True)
         self.size = (width, height)
 

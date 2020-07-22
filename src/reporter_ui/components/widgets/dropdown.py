@@ -15,6 +15,7 @@ class RGDropdown(RGWidgetBase):
     def build(self):
         super().build()
         self.widget = OptionMenu(self.window, self.text_var, *self.options)
-        self.widget.configure(font=self.font, width=self.dimensions[0], height=self.dimensions[1],
+        self.widget.configure(font=self.font, width=int(self.dimensions[0] * 0.105),
+                              height=int(self.dimensions[0] * 0.005),
                               bg=str(get_color(self.color)))
         self.widget.place(x=self.xy[0], y=self.xy[1])

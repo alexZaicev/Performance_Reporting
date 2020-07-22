@@ -66,7 +66,7 @@ def get_dir_path(name=ROOT):
     try:
         return DIR_PATH[name]
     except KeyError:
-        logging.error('Unknown directory type [{}]'.format(name))
+        logging.getLogger(__name__).error('Unknown directory type [{}]'.format(name))
     return None
 
 
@@ -94,7 +94,7 @@ def get_color(name=BLACK):
     try:
         return COLOR_MAP[name]
     except KeyError:
-        logging.error('Unknown color name [{}]'.format(name))
+        logging.getLogger(__name__).error('Unknown color name [{}]'.format(name))
     return None
 
 
@@ -167,12 +167,12 @@ def get_val(df, key, is_int=False, is_float=False, is_str=False, is_date=False):
                     temp = parse_unicode_str(val).encode(encoding='utf-8')
                     val = temp.decode(encoding=REPORT_ENCODING, errors='strict')
                 except UnicodeEncodeError:
-                    logging.error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
+                    logging.getLogger(__name__).error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
                 except UnicodeDecodeError:
-                    logging.error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
+                    logging.getLogger(__name__).error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
             return val
     except KeyError:
-        logging.debug('Data frame does not contain the following key value [{}]'.format(key))
+        logging.getLogger(__name__).debug('Data frame does not contain the following key value [{}]'.format(key))
     return None
 
 
@@ -232,7 +232,7 @@ def format_value(val, d_format=None):
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
-                logging.error('Failed to format non floating point string value [{}]'.format(val))
+                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
                 return None
             else:
                 val = tmp
@@ -241,7 +241,7 @@ def format_value(val, d_format=None):
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
-                logging.error('Failed to format non floating point string value [{}]'.format(val))
+                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
                 return None
             else:
                 val = tmp

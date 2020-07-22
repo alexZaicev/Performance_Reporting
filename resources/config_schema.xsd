@@ -18,6 +18,7 @@
 									<xs:attribute name="id" type="xs:string"/>
 									<xs:attribute name="ref_no" type="xs:string"/>
 									<xs:attribute name="title" type="xs:string"/>
+									<xs:attribute name="selected" type="xs:integer"/>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>

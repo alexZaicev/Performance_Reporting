@@ -6,11 +6,11 @@
   <fiscal_year_band>15</fiscal_year_band>
   <debug_mode>true</debug_mode>
   <measures>
-    <measure id="1_01" ref_no="CMP1" title="This is CMP1 measure"/>
-    <measure id="1_02" ref_no="CMP2" title="This is CMP2 measure"/>
-    <measure id="1_03" ref_no="CMP3" title="This is CMP3 measure"/>
-    <measure id="1_04" ref_no="CMP4" title="This is CMP4 measure"/>
-    <measure id="1_05" ref_no="CMP5" title="This is CMP5 measure"/>
-    <measure id="1_06" ref_no="CMP6" title="This is CMP6 measure"/>
+    <measure id="1_01" ref_no="CMP1" title="This is CMP1 measure" selected="0"/>
+    <measure id="1_02" ref_no="CMP2" title="This is CMP2 measure" selected="0"/>
+    <measure id="1_03" ref_no="CMP3" title="This is CMP3 measure" selected="0"/>
+    <measure id="1_04" ref_no="CMP4" title="This is CMP4 measure" selected="0"/>
+    <measure id="1_05" ref_no="CMP5" title="This is CMP5 measure" selected="0"/>
+    <measure id="1_06" ref_no="CMP6" title="This is CMP6 measure" selected="0"/>
   </measures>
 </configuration>

@@ -16,4 +16,7 @@ class RGButton(RGWidgetBase):
         self.widget = Button(master=self.window, text=self.text, command=self.callback)
         self.widget.configure(font=self.font, width=self.dimensions[0], height=self.dimensions[1],
                               bg=str(get_color(self.color)))
-        self.widget.place(x=self.xy[0], y=self.xy[1])
+        if self.custom_pack:
+            self.pack()
+        else:
+            self.widget.place(x=self.xy[0], y=self.xy[1])

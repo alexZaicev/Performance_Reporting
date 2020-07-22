@@ -1,3 +1,4 @@
+import logging
 from tkinter import Label, LEFT
 
 from common.models.errors import RGError
@@ -21,10 +22,16 @@ class RGLabel(RGWidgetBase):
             self.widget = Label(master=self.window, text=self.text)
         elif self.text_var is not None:
             self.widget = Label(master=self.window, textvariable=self.text_var)
+        else:
+            logging.getLogger(__name__).warning('RGLabel does not have any text values provided')
+            self.widget = Label(master=self.window)
 
         if self.widget is None:
             raise RGError('Label text values cannot be None')
         self.widget.configure(font=self.font, width=self.dimensions[0], height=self.dimensions[1],
                               bg=str(get_color(self.color)), justify=self.justify, borderwidth=self.border_width,
                               relief=self.relief)
-        self.widget.place(x=self.xy[0], y=self.xy[1])
+        if self.custom_pack:
+            self.pack()
+        else:
+            self.widget.place(x=self.xy[0], y=self.xy[1])

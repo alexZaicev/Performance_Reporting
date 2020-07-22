@@ -18,4 +18,7 @@ class RGDropdown(RGWidgetBase):
         self.widget.configure(font=self.font, width=int(self.dimensions[0] * 0.105),
                               height=int(self.dimensions[0] * 0.005),
                               bg=str(get_color(self.color)))
-        self.widget.place(x=self.xy[0], y=self.xy[1])
+        if self.custom_pack:
+            self.pack()
+        else:
+            self.widget.place(x=self.xy[0], y=self.xy[1])

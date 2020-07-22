@@ -554,3 +554,7 @@ def get_year_month_of_prev_and_current_quarters(fym):
     if pym is not None:
         pym = try_parse('{}{}{:02d}'.format(f_year, str(f_year + 1)[-2:], get_fiscal_month_id(pym)), is_int=True)
     return pym, cym
+
+
+def str_blank(s):
+    return s is None or len(s) == 0

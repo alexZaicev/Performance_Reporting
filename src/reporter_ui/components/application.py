@@ -4,11 +4,12 @@ from common.constants import APPLICATION_NAME, VERSION, DIM_WHITE
 from common.models.errors import RGUIError
 from common.text import *
 from common.utils import get_color
-from reporter_ui.config_manager import RGConfigManager
-from reporter_ui.components.frames.buttons_frame import ButtonsFrame
 from reporter_ui.components.component_base import RGApplicationBase
+from reporter_ui.components.frames.buttons_frame import ButtonsFrame
 from reporter_ui.components.frames.exclusion_frame import ExclusionFrame
 from reporter_ui.components.frames.parameters_frame import ParametersFrame
+from reporter_ui.components.widgets.error_dialog import RGErrorDialog
+from reporter_ui.config_manager import RGConfigManager
 
 
 class RGApplication(RGApplicationBase):
@@ -28,9 +29,14 @@ class RGApplication(RGApplicationBase):
             ExclusionFrame(window=self, config=self.config).build()
             ButtonsFrame(window=self, config=self.config).build()
         except RGUIError as ex:
-            # TODO show error dialog to the user
-            pass
+            self.show_error_dialog(message=str(ex))
         self.__window.mainloop()
+
+    def close_app(self):
+        if messagebox.askokcancel(CLOSE, ARE_YOU_SURE_YOU_WANT_TO_CLOSE_REPORTING_TOOL):
+            self.pre_destroy()
+            self.__window.destroy()
+            exit()
 
     def pre_destroy(self):
         RGConfigManager.save_config(self.config)
@@ -43,8 +49,5 @@ class RGApplication(RGApplicationBase):
         self.__window.title(APPLICATION_NAME.format(VERSION))
         self.__window.configure(background=str(get_color(DIM_WHITE)))
 
-    def close_app(self):
-        if messagebox.askokcancel(CLOSE, ARE_YOU_SURE_YOU_WANT_TO_CLOSE_REPORTING_TOOL):
-            self.pre_destroy()
-            self.__window.destroy()
-            exit()
+    def show_error_dialog(self, message=None):
+        RGErrorDialog(title=ERROR, message=message, window=self, config=self.config).build()

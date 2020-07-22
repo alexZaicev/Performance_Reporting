@@ -17,12 +17,14 @@ class RGConfigManager(RGUtilityBase):
     XML_ORCA_PATH = 'orca_path'
     XML_MEASURES = 'measures'
     XML_MEASURE = 'measure'
-    XML_ATTR_ID = 'id'
-    XML_ATTR_REF_NO = 'ref_no'
-    XML_ATTR_TITLE = 'title'
     XML_CONFIGURATION = 'configuration'
     XML_FISCAL_YEAR_BAND = 'fiscal_year_band'
     XML_DEBUG_MODE = 'debug_mode'
+
+    XML_ATTR_ID = 'id'
+    XML_ATTR_REF_NO = 'ref_no'
+    XML_ATTR_TITLE = 'title'
+    XML_ATTR_SELECTED = 'selected'
 
     @staticmethod
     def read_config():
@@ -34,6 +36,7 @@ class RGConfigManager(RGUtilityBase):
             config = RGConfigManager.__parse_config_from_xml(tree)
 
         except RGUIError as ex:
+            # pass UI exception to error dialog renderer
             raise ex
         except Exception as ex:
             logging.getLogger(__name__).error('Configuration manager could not read reporter configuration file [{}]'.format(str(ex)))
@@ -105,7 +108,8 @@ class RGConfigManager(RGUtilityBase):
                             RGMeasureEntry(
                                 m_id=c_node.get(RGConfigManager.XML_ATTR_ID),
                                 m_ref_no=c_node.get(RGConfigManager.XML_ATTR_REF_NO),
-                                m_title=c_node.get(RGConfigManager.XML_ATTR_TITLE)
+                                m_title=c_node.get(RGConfigManager.XML_ATTR_TITLE),
+                                selected=c_node.get(RGConfigManager.XML_ATTR_SELECTED) == 1
                             )
                         )
                     config.measure_entries = measures
@@ -144,6 +148,10 @@ class RGConfigManager(RGUtilityBase):
                 m_node.attrib[RGConfigManager.XML_ATTR_ID] = m_entry.m_id
                 m_node.attrib[RGConfigManager.XML_ATTR_REF_NO] = m_entry.m_ref_no
                 m_node.attrib[RGConfigManager.XML_ATTR_TITLE] = m_entry.m_title
+                if m_entry.selected:
+                    m_node.attrib[RGConfigManager.XML_ATTR_SELECTED] = '1'
+                else:
+                    m_node.attrib[RGConfigManager.XML_ATTR_SELECTED] = '0'
                 measures.append(m_node)
 
             tree.append(measures)

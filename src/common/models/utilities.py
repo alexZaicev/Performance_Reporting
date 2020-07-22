@@ -94,7 +94,8 @@ class RGConfig(object):
 
 class RGMeasureEntry(object):
 
-    def __init__(self, m_id=None, m_ref_no=None, m_title=None):
+    def __init__(self, m_id=None, m_ref_no=None, m_title=None, selected=False):
         self.m_id = m_id
         self.m_ref_no = m_ref_no
         self.m_title = m_title
+        self.selected = selected

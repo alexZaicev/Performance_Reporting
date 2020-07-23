@@ -14,7 +14,9 @@ class RGReporterBase(ABC):
     RG reporter base class
     """
 
-    def __init__(self):
+    def __init__(self, options):
+        ABC.__init__(self)
+        self.options = options
         self.report = None
         self.report_name = REPORT_NAME
 
@@ -25,14 +27,14 @@ class RGReporterBase(ABC):
             shutil.rmtree(tmp_dir)
         os.mkdir(tmp_dir)
 
-    def generate(self, options=None):
-        if options is None or not isinstance(options, RGReporterOptions):
+    def generate(self):
+        if self.options is None or not isinstance(self.options, RGReporterOptions):
             raise RGError('Invalid report options provided')
         logging.getLogger(__name__).info('Generating report...')
         self.do_init()
-        self.do_compose(options=options)
-        self.do_prepare_export(out_dir=options.out_dir)
-        self.do_export(out_dir=options.out_dir)
+        self.do_compose(options=self.options)
+        self.do_prepare_export(out_dir=self.options.out_dir)
+        self.do_export(out_dir=self.options.out_dir)
         self.do_clean()
         logging.getLogger(__name__).info('Report successfully generated! [{}]'.format(self.report_name))
         return self.report_name

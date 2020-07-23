@@ -6,9 +6,9 @@ from os.path import dirname, abspath, join
 
 from pandas import NaT, to_datetime
 
+import common.text as text
 from common.constants import *
 from common.models.errors import RGError
-from common.text import NOT_APPLICABLE, PERCENTAGE, NUMBER
 
 
 def timestamp():
@@ -224,7 +224,7 @@ def get_bmk(data_list):
 
 def format_value(val, d_format=None):
     if NAN is str(val).lower():
-        val = NOT_APPLICABLE
+        val = text.NOT_APPLICABLE
     elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
         if len(val) > MAX_FORMATTED_VALUE_SIZE:
             val = '{}..'.format(val[:MAX_FORMATTED_VALUE_SIZE - 3])
@@ -237,7 +237,7 @@ def format_value(val, d_format=None):
             else:
                 val = tmp
         val = '%.2f' % (val * 100) + '%'
-    elif d_format.upper() == NUMBER.upper():
+    elif d_format.upper() == text.NUMBER.upper():
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
@@ -558,3 +558,23 @@ def get_year_month_of_prev_and_current_quarters(fym):
 
 def str_blank(s):
     return s is None or len(s) == 0
+
+
+def get_month_name_from_id(month_id):
+    MONTH_ID_NAME_MAP = {
+        1: text.APRIL,
+        2: text.MAY,
+        3: text.JUNE,
+        4: text.JULY,
+        5: text.AUGUST,
+        6: text.SEPTEMBER,
+        7: text.OCTOBER,
+        8: text.NOVEMBER,
+        9: text.DECEMBER,
+        10: text.JANUARY,
+        11: text.FEBRUARY,
+        12: text.MARCH
+    }
+    if 0 < month_id < 13:
+        return MONTH_ID_NAME_MAP[month_id]
+    return None

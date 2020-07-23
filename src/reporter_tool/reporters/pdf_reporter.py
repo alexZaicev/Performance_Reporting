@@ -6,7 +6,6 @@ import numpy as np
 import plotly.io.orca as orca
 from fpdf import FPDF
 from matplotlib import font_manager
-from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
 from common.models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
@@ -16,8 +15,8 @@ from reporter_tool.reporters.reporter_base import RGReporterBase
 
 class PDFReporter(RGReporterBase):
 
-    def __init__(self, orca_path=None):
-        RGReporterBase.__init__(self)
+    def __init__(self, options=None):
+        RGReporterBase.__init__(self, options=options)
         # starting coordinates for each page
         self.left_top = (10, 30)
         # size of a small chart
@@ -25,8 +24,8 @@ class PDFReporter(RGReporterBase):
         # grid mapping for small charts
         self.grid_size = (2, 3)
         # set plotly.io.orca.config.executable
-        if orca_path is not None:
-            orca.config.executable = orca_path
+        if self.options.orca_path is not None:
+            orca.config.executable = self.options.orca_path
 
     def do_init(self):
         super().do_init()
@@ -47,8 +46,11 @@ class PDFReporter(RGReporterBase):
         self.report.set_auto_page_break(auto=False)
 
     def do_export(self, out_dir=None):
-        self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
-                           dest='F')
+        f_year = try_parse(str(self.options.fym)[:4], is_int=True)
+        f_month = try_parse(str(self.options.fym)[-2:], is_int=True)
+        self.report_name = '{}_{}_{}_{}.{}'.format(get_cfy_prefix(cfy=f_year), get_month_name_from_id(f_month),
+                                                   self.report_name, timestamp(), EXT_PDF)
+        self.report.output(name=os.path.join(out_dir, self.report_name), dest='F')
 
     def do_compose(self, options=None):
         self.__do_compose_cpm_scorecard(options)

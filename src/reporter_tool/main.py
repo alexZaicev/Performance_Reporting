@@ -17,7 +17,6 @@ def __main(arg0=None):
     fm_id = get_fiscal_month_id(arg0.month)
     dao = ExcelTemplateDao(year=arg0.year, month=fm_id, path=arg0.templates_root)
     f_dao = ImageFileDao(year=arg0.year, month=fm_id, path=arg0.templates_root)
-    reporter = PDFReporter(orca_path=arg0.orca_path)
     try:
         options = RGReporterOptions(entities=dao.get_entities(),
                                     exclusions=arg0.exclusions,
@@ -25,9 +24,10 @@ def __main(arg0=None):
                                     images=f_dao.get_files(),
                                     fym=try_parse(
                                         '{}{:02d}'.format(get_cfy_prefix(cfy=arg0.year).replace('-', ''), fm_id),
-                                        is_int=True)
+                                        is_int=True),
+                                    orca_path=arg0.orca_path
                                     )
-        reporter.generate(options)
+        PDFReporter(options=options).generate()
     except RGError as ex:
         logging.error(str(ex))
 

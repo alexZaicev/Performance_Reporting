@@ -134,7 +134,7 @@ UNASSIGNED = 'UNASSIGNED'
 """
 Application constants
 """
-REPORT_NAME = 'Performance Monitoring Report'
+REPORT_NAME = 'Performance_Monitoring_Report'
 REPORT_ENCODING = 'utf-8'
 REPORT_FONT = DEJAVU_SERIF_CONDENSED
 EXT_PDF = 'pdf'

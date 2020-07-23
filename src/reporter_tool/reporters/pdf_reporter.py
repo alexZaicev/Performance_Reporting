@@ -9,10 +9,9 @@ from matplotlib import font_manager
 from matplotlib.ticker import PercentFormatter
 from plotly import graph_objects
 
-from common import text as text
 from common.models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
-from reporter_tool.reporters.reporter_base import RGReporterBase
 from common.utils import *
+from reporter_tool.reporters.reporter_base import RGReporterBase
 
 
 class PDFReporter(RGReporterBase):
@@ -78,7 +77,8 @@ class PDFReporter(RGReporterBase):
                                                                                                         options.fym))
 
     def __do_compose_relationship_effectiveness_scorecard(self, options):
-        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
+        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
+                                        month_id=try_parse(str(options.fym)[-2:], is_int=True))
         self.report.cell(220, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
         self.report.cell(185, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
         h += 8.5
@@ -662,7 +662,8 @@ class PDFReporter(RGReporterBase):
         self.report.cell(w / 9, h=h_line, txt='{:.2f}%'.format(variance), align='C')
 
     def __do_compose_financial_hr_scorecard(self, options):
-        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405)
+        h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
+                                        month_id=try_parse(str(options.fym)[-2:], is_int=True))
         self.report.cell(330, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
         self.report.cell(75, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
         h += 8.5
@@ -1455,7 +1456,7 @@ class PDFReporter(RGReporterBase):
         self.report.image(f_path, x=None, y=None, w=80, h=0, type='', link='')
 
     def __do_compose_cpm_scorecard(self, options):
-        h = self.__create_scorecard_top(add_page=True)
+        h = self.__create_scorecard_top(add_page=True, month_id=try_parse(str(options.fym)[-2:], is_int=True))
 
         self.report.cell(112, h=8.5, txt=text.COUNCIL_PLANS_MEASURE_SUMMARY, fill=1, align='C', border=1)
         self.report.cell(153, h=8.5, txt=text.KEY_RESULTS_ACTIONS, fill=1, align='C', border=1)
@@ -1641,10 +1642,12 @@ class PDFReporter(RGReporterBase):
                 coords = list(self.left_top)
                 graphs = 0
                 self.__create_scorecard_top(x=self.left_top[0], h=self.left_top[1] - 8.5, add_second=False,
-                                            w=self.graph_size[0] * self.grid_size[1])
+                                            w=self.graph_size[0] * self.grid_size[1],
+                                            month_id=try_parse(str(options.fym)[-2:], is_int=True))
         if graphs > 0:
             self.__create_scorecard_top(x=self.left_top[0], h=self.left_top[1] - 8.5, add_second=False,
-                                        w=self.graph_size[0] * self.grid_size[1])
+                                        w=self.graph_size[0] * self.grid_size[1],
+                                        month_id=try_parse(str(options.fym)[-2:], is_int=True))
             self.__reset_colors()
             self.__set_grid(n_cells=graphs)
 
@@ -1655,18 +1658,21 @@ class PDFReporter(RGReporterBase):
         self.report.set_text_color(color.r, color.g, color.b)
 
     def __create_scorecard_top(self, add_page=False, h=98.0, add_first=True, add_second=True, add_third=False, w=405,
-                               x=7.5):
+                               x=7.5, month_id=None):
         self.__set_font(size=8, is_bold=True)
         if add_page:
             self.report.add_page()
         if add_first:
+            if month_id is None:
+                raise RGError('Month ID is not provided for scorecard header')
             self.report.set_xy(x, h)
             color = get_color(DARK_BLUE)
             self.report.set_fill_color(color.r, color.g, color.b)
             color = get_color(WHITE)
             self.report.set_text_color(color.r, color.g, color.b)
-            # TODO get month and FY
-            self.report.cell(w, h=8.5, txt=text.MONTHLY_PERFORMANCE_SCORECARD.format('April', 2020), fill=1, align='C')
+            self.report.cell(w, h=8.5,
+                             txt=text.MONTHLY_PERFORMANCE_SCORECARD.format(get_month_name_from_id(month_id), 2020),
+                             fill=1, align='C')
             h += 8.5
 
         if add_second:
@@ -1687,7 +1693,7 @@ class PDFReporter(RGReporterBase):
         return h
 
     def __do_compose_sdm_scorecard(self, options):
-        h = self.__create_scorecard_top(add_page=True)
+        h = self.__create_scorecard_top(add_page=True, month_id=try_parse(str(options.fym)[-2:], is_int=True))
 
         self.report.cell(112, h=8.5, txt=text.SUMMARY, fill=1, align='C', border=1)
         self.report.cell(293, h=8.5, txt=text.KEY_RESULTS_SERVICE_DELIVERY_MEASURES, fill=1, align='C', border=1)
@@ -1815,7 +1821,7 @@ class PDFReporter(RGReporterBase):
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
             fill_bool = False
-            baseline = NOT_APPLICABLE
+            baseline = text.NOT_APPLICABLE
         else:
             month_data = data_current_pos_list[len(data_current_pos_list) - 1]
             if FREQ_ANNUAL in frequency:
@@ -1890,8 +1896,6 @@ class PDFReporter(RGReporterBase):
 
     def __compose_bar_chart(self, measure, data_list, frequency, d_format):
         fig, ax = plt.subplots()
-        if d_format.upper() == PERCENTAGE:
-            ax.yaxis.set_major_formatter(PercentFormatter(1.0))
         graph_title = '{} (ex. {})'.format(measure.m_title, measure.m_ref_no)
         ax.set_title(graph_title.replace('\r', '').replace('\n', ''),
                      fontproperties=self.__get_font_props(DEJAVU_SERIF_CONDENSED_BOLD, size=12, bold=True), wrap=True)
@@ -1899,7 +1903,13 @@ class PDFReporter(RGReporterBase):
         x_freq = self.__get_freq(frequency)
         x_ticks, x_ticks_lbl, y_target = self.__get_ticks_and_target(x_freq, data_list)
 
-        ax.plot(x_ticks, y_target, "k--", color='darkblue', zorder=4)
+        is_empty_target = True
+        for target in y_target:
+            if target != 0:
+                is_empty_target = False
+        if not is_empty_target:
+            ax.plot(x_ticks, y_target, "k--", color='darkblue', zorder=4)
+
         baseline = try_parse(measure.baseline, is_float=True)
         if baseline is None and isinstance(measure.baseline, str):
             baseline = measure.baseline.split('%')[0]
@@ -1937,6 +1947,10 @@ class PDFReporter(RGReporterBase):
             ax.set_xticklabels(x_ticks_lbl, rotation=45, ha='right')
         else:
             ax.set_xticklabels(x_ticks_lbl, rotation='horizontal')
+
+        if d_format.upper() == PERCENTAGE:
+            y_ticks = ax.get_yticks()
+            ax.set_yticklabels(['{}%'.format(int(x * 100)) for x in y_ticks])
 
         f_path = join(get_dir_path(TEMP), '{}_bar_chart.png'.format(measure.m_id))
         fig.savefig(f_path)

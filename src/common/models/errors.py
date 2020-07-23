@@ -25,6 +25,3 @@ class RGUIError(RGError):
     """
     pass
 
-
-class RGGenerationCompleted(Exception):
-    pass

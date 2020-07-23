@@ -176,6 +176,10 @@ ABORT = 'Abort'
 PLEASE_VERIFY_SELECTED_PARAMETERS_BEFORE_CONTINUING = 'Please verify selected parameters before continuing'
 NUMBER_OF_EXCLUSIONS_SELECTED = '{} out of {} measures will be excluded from the report'
 PLEASE_WAIT_WHILE_REPORT_IS_GENERATED = 'Please wait while report is generated'
-REPORTING_TOOL_FINISHED_GENERATING_THE_REPORT_WOULD_YOU_LIKE_TO_OPEN_THE_FILE = 'Reporting tool finished generating the report. Would you like to open the file?'
+REPORTING_TOOL_FINISHED_GENERATING_THE_REPORT_WOULD_YOU_LIKE_TO_OPEN_THE_FILE = 'Reporting tool finished generating' \
+                                                                                ' the report. Would you like to open' \
+                                                                                ' the file?'
 YES = 'Yes'
 NO = 'No'
+TEMPLATES_FOR_CURRENT_AND_LAST_FISCAL_YEARS_NOT_FOUND = 'Templates for current ({}) and last ({}) fiscal years' \
+                                                        ' not found'

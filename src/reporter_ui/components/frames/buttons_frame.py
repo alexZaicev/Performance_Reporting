@@ -2,7 +2,7 @@ from threading import Thread
 from tkinter import RAISED, Frame
 
 import common.constants as cons
-from common.models.errors import RGUIError, RGGenerationCompleted
+from common.models.errors import RGUIError
 from common.text import *
 from common.utils import get_color, str_blank
 from reporter_ui.components.component_base import RGComponentBase

@@ -4,7 +4,7 @@ import pandas as pd
 from xlrd import XLRDError
 
 from common.constants import *
-from common.models.errors import RGError
+from common.models.errors import RGError, RGTemplateNotFoundError
 from common.utils import get_cfy_prefix, get_lfy_prefix, parse_columns, get_val
 from reporter_tool.dao.dao_base import RGDaoBase
 from reporter_tool.factories.data_factory import RGDataFactory
@@ -120,7 +120,8 @@ class ExcelTemplateDao(RGDaoBase):
                             .str.cat(df_hr_training.loc[:, MONTH].str[1:3])
 
                     except XLRDError as e:
-                        logging.getLogger(__name__).debug('Template does not contain HR specific data [{}]'.format(template, str(e)))
+                        logging.getLogger(__name__).debug(
+                            'Template does not contain HR specific data [{}]'.format(template, str(e)))
 
                     # try parse DCS data
                     try:
@@ -136,10 +137,12 @@ class ExcelTemplateDao(RGDaoBase):
                         df_dcs_complaints.loc[:, YEAR_MONTH] = df_dcs_complaints.loc[:, FISCAL_YEAR] \
                             .str.replace("-", "").str.cat(df_dcs_complaints.loc[:, MONTH].str[1:3])
                     except XLRDError as e:
-                        logging.getLogger(__name__).debug('Template does not contain DCS specific data [{}]'.format(template, str(e)))
+                        logging.getLogger(__name__).debug(
+                            'Template does not contain DCS specific data [{}]'.format(template, str(e)))
 
                 except XLRDError as e:
-                    logging.getLogger(__name__).debug('Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
+                    logging.getLogger(__name__).debug(
+                        'Failed to read template [{}] as measure data source [{}]'.format(template, str(e)))
 
                     dict_template = pd.read_excel(template, sheet_name=[PMT_ADDITIONAL_DATA], encoding='utf-8')
                     temp = dict_template[PMT_ADDITIONAL_DATA]
@@ -165,10 +168,13 @@ class ExcelTemplateDao(RGDaoBase):
             logging.getLogger(__name__).debug(
                 'Template file [{}] has been removed, because current or last fiscal year report is not present'.format(
                     name))
+        if len(templates) == 0:
+            raise RGTemplateNotFoundError()
         return templates
 
     def __create_measures(self):
-        df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training, df_dcs_complaints = self.get_data_frames()
+        df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training, df_dcs_complaints = \
+            self.get_data_frames()
         if df_cym is None:
             raise RGError('Unable to create measures from invalid data frame object [{}]'.format(df_cym))
         self.__entities = list()

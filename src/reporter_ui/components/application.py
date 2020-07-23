@@ -11,7 +11,6 @@ from reporter_ui.components.frames.buttons_frame import RGButtonsFrame
 from reporter_ui.components.frames.exclusion_frame import ExclusionFrame
 from reporter_ui.components.frames.parameters_frame import ParametersFrame
 from reporter_ui.components.widgets.confirm_dialog import RGConfirmDialog
-from reporter_ui.components.widgets.error_dialog import RGErrorDialog
 from reporter_ui.config_manager import RGConfigManager
 
 
@@ -64,8 +63,10 @@ class RGApplication(RGApplicationBase):
         self.__window.title(APPLICATION_NAME.format(VERSION))
         self.__window.configure(background=str(get_color(DIM_WHITE)))
 
-    def show_error_dialog(self, message=None):
-        RGErrorDialog(title=ERROR, message=message, window=self, config=self.config).build()
+    @staticmethod
+    def show_error_dialog(message=None, exit_on_ok=False):
+        if messagebox.showerror(title=ERROR, message=message) and exit_on_ok:
+            exit()
 
     def block_ui(self):
         if not self.__blocked:

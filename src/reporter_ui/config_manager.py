@@ -1,14 +1,15 @@
 import logging
+import os
 from os.path import join
 
 import lxml.etree as l_etree
 
 from common.constants import RESOURCES, ROOT
-from common.models.errors import RGUIError
+from common.models.errors import RGError, RGInvalidConfigurationError
 from common.models.utilities import RGConfig, RGMeasureEntry
 from common.text import *
 from common.utility_base import RGUtilityBase
-from common.utils import get_dir_path
+from common.utils import get_dir_path, str_blank
 
 
 class RGConfigManager(RGUtilityBase):
@@ -34,19 +35,17 @@ class RGConfigManager(RGUtilityBase):
 
             tree = RGConfigManager.__get_valid_config_tree(s_xml)
             config = RGConfigManager.__parse_config_from_xml(tree)
-
-        except RGUIError as ex:
-            # pass UI exception to error dialog renderer
+        except RGError as ex:
             raise ex
         except Exception as ex:
-            logging.getLogger(__name__).error('Configuration manager could not read reporter configuration file [{}]'.format(str(ex)))
-            raise RGUIError(REPORTER_COULD_NOT_READ_THE_CONFIGURATION_FILE)
+            logging.getLogger(__name__).error(str(ex))
+            raise RGError('Could not find and read valid configuration file')
         return config
 
     @staticmethod
     def save_config(config):
         if not isinstance(config, RGConfig):
-            raise RGUIError(CONFIGURATION_COULD_NOT_BE_SAVED)
+            raise RGError('Expected configuration of type RGConfig, actual [{}]'.format(type(config)))
         try:
             tree = RGConfigManager.__parse_config_to_xml(config=config)
             s_config = l_etree.tostring(tree, encoding='UTF-8', pretty_print=True, xml_declaration=True) \
@@ -57,32 +56,34 @@ class RGConfigManager(RGUtilityBase):
 
             with open(join(get_dir_path(ROOT), 'config.xml'), 'w') as ff:
                 ff.write(s_config)
-
         except Exception as ex:
-            logging.getLogger(__name__).error('Configuration manager could not save reporter configuration file [{}]'.format(str(ex)))
-            raise RGUIError(CONFIGURATION_COULD_NOT_BE_SAVED)
+            raise RGError(str(ex))
 
     @staticmethod
     def __get_valid_config_tree(s_xml):
         try:
-            with open(join(get_dir_path(RESOURCES), 'config_schema.xsd'), 'r') as ff:
+            schema_path = join(get_dir_path(RESOURCES), 'config_schema.xsd')
+            if not os.path.exists(schema_path):
+                raise RGError('Configuration schema file cannot be found in resources directory')
+            with open(schema_path, 'r') as ff:
                 s_schema = ''.join(ff.readlines())
 
-            if s_schema is None:
-                raise RGUIError('Reporter could not find a valid configuration file')
+            if str_blank(s_schema):
+                raise RGError('Configuration schema file does not contain valid schema definition')
 
             schema_root = l_etree.XML(s_schema.encode(encoding='UTF-8'))
             schema = l_etree.XMLSchema(schema_root)
             parser = l_etree.XMLParser(schema=schema)
 
             tree = l_etree.fromstring(s_xml.encode(encoding='UTF-8'), parser)
-
+        except RGError as ex:
+            raise ex
         except l_etree.XMLSyntaxError as ex:
-            logging.getLogger(__name__).error('Configuration contains invalid tags/data [{}]'.format(str(ex)))
-            raise RGUIError(CONFIGURATION_FILE_CONTAINS_INVALID_XML_TAGS_OR_DATA)
+            logging.getLogger(__name__).error(str(ex))
+            raise RGInvalidConfigurationError(CONFIGURATION_FILE_CONTAINS_INVALID_XML_TAGS_OR_DATA.format(str(ex)))
         except Exception as ex:
-            logging.getLogger(__name__).error('Reporter could not validate configuration file [{}]'.format(str(ex)))
-            raise RGUIError(REPORTER_COULD_NOT_VALIDATE_CONFIGURATION_FILE)
+            logging.getLogger(__name__).error(str(ex))
+            raise RGInvalidConfigurationError(REPORTER_COULD_NOT_VALIDATE_CONFIGURATION_FILE)
         return tree
 
     @staticmethod

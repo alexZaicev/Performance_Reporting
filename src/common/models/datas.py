@@ -33,8 +33,6 @@ class RGDataModel(RGModelBase):
         self.assistant_director_sign_off = get_val(df, ASSISTANT_DIRECTOR_SIGN_OFF)
         self.dmt_sign_off_date = get_val(df, DMT_SIGN_OFF_DATE)
         self.cabinet_mem_sign_off_date = get_val(df, CABINET_MEMBERS_SIGN_OFF_DATE)
-        self.year = get_val(df, YEAR)
-        self.year_month = get_val(df, YEAR_MONTH)
         self.year_quarter = get_val(df, YEAR_QUARTER)
 
 
@@ -43,8 +41,6 @@ class HrDataModel(RGModelBase):
     def __init__(self, m_type=None, df=None):
         RGModelBase.__init__(self, m_type=m_type, df=df)
         self.data_format = get_val(df, DATA_FORMAT)
-        self.year = get_val(df, YEAR)
-        self.year_month = get_val(df, YEAR_MONTH)
 
 
 class DCSDataModel(RGModelBase):
@@ -52,8 +48,6 @@ class DCSDataModel(RGModelBase):
     def __init__(self, m_type=None, df=None):
         RGModelBase.__init__(self, m_type=m_type, df=df)
         self.data_format = get_val(df, DATA_FORMAT)
-        self.year = get_val(df, YEAR)
-        self.year_month = get_val(df, YEAR_MONTH)
 
 
 class CpmData(RGDataModel):

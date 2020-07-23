@@ -4,12 +4,12 @@ import pandas as pd
 from xlrd import XLRDError
 
 from common.constants import *
+from common.models.errors import RGError
+from common.utils import get_cfy_prefix, get_lfy_prefix, parse_columns, get_val
 from reporter_tool.dao.dao_base import RGDaoBase
 from reporter_tool.factories.data_factory import RGDataFactory
 from reporter_tool.factories.entity_factory import RGEntityFactory
 from reporter_tool.factories.measure_factory import RGMeasureFactory
-from common.models.errors import RGError
-from common.utils import get_cfy_prefix, get_lfy_prefix, parse_columns, get_val
 
 
 class ExcelTemplateDao(RGDaoBase):
@@ -145,6 +145,10 @@ class ExcelTemplateDao(RGDaoBase):
                     temp = dict_template[PMT_ADDITIONAL_DATA]
                     temp.columns = map(parse_columns, temp.columns)
                     df_pmt = df_pmt.append(temp)
+
+                    df_pmt.loc[:, YEAR] = df_pmt.loc[:, FISCAL_YEAR].str.replace("-", "")
+                    df_pmt.loc[:, YEAR_MONTH] = df_pmt.loc[:, FISCAL_YEAR].str.replace("-", "") \
+                        .str.cat(df_pmt.loc[:, MONTH].str[1:3])
 
         return tuple([df_cym, df_cyd, df_pmt, df_hr_scorecard, df_hr_absences, df_hr_sickness, df_hr_training,
                       df_dcs_complaints])

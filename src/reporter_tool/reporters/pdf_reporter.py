@@ -8,7 +8,7 @@ from fpdf import FPDF
 from matplotlib import font_manager
 from plotly import graph_objects
 
-from common.models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
+from common.models.entities import CpmEntity, SdmEntity
 from common.utils import *
 from reporter_tool.reporters.reporter_base import RGReporterBase
 
@@ -106,23 +106,8 @@ class PDFReporter(RGReporterBase):
         self.__set_font(size=6)
         self.report.set_xy(x, h)
         self.report.cell(graph_size[0], h=graph_size[1], border=1)
-        entity = get_entity_by_m_id(options.entities, 'PMT_03', has_measure=False)
-        column_1, column_2 = '', ''
-        for d in entity.data_cfy:
-            if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
-                column_1 = d.measure_text_column_1
-        if len(column_1) == 0:
-            for d in entity.data_lfy:
-                if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
-                    column_1 = d.measure_text_column_1
-
-        for d in entity.data_cfy:
-            if d.measure_text_column_2 is not None and len(d.measure_text_column_2) > 0:
-                column_2 = d.measure_text_column_2
-        if len(column_2) == 0:
-            for d in entity.data_lfy:
-                if d.measure_text_column_2 is not None and len(d.measure_text_column_2) > 0:
-                    column_2 = d.measure_text_column_2
+        data = get_data_by_m_id_and_date(options.entities, 'PMT_03', options.fym)
+        column_1, column_2 = data.measure_text_column_1, data.measure_text_column_2
 
         self.report.set_xy(x + 1, h + 1)
         self.report.multi_cell(graph_size[0] / 2 - 2, h=2.5, txt=column_1, align='J')
@@ -1586,23 +1571,10 @@ class PDFReporter(RGReporterBase):
         self.report.cell(16, h=6, txt='{}'.format(len(entities)), align='C')
 
     def __compose_key_results_actions(self, h, entities, m_id=None):
-        h += 2
-        for entity in entities:
-            if not isinstance(entity, PmtAdditionalEntity):
-                continue
-            if entity.data_cfy[0].m_id == m_id:
-                comment = ''
-                for d in entity.data_cfy:
-                    if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
-                        comment = d.measure_text_column_1
-                if len(comment) == 0:
-                    for d in entity.data_lfy:
-                        if d.measure_text_column_1 is not None and len(d.measure_text_column_1) > 0:
-                            comment = d.measure_text_column_1
-                self.report.set_xy(121, h)
-                self.__set_font(size=6)
-                self.report.multi_cell(150, h=2.5, txt=parse_comment(comment), align='J')
-                break
+        data = get_data_by_m_id_and_date(entities, m_id, self.options.fym)
+        self.report.set_xy(121, h + 2)
+        self.__set_font(size=6)
+        self.report.multi_cell(150, h=2.5, txt=parse_comment(data.measure_text_column_1), align='J')
 
     def __do_compose_grid_charts(self, options):
         graphs = 0

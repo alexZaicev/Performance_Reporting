@@ -509,21 +509,21 @@ def get_outcome_priority(outcome):
     return 9999
 
 
-def parse_comment(text, size=1950, n_line=18, remove_line_feeds=False):
-    if text is None:
-        text = ''
-    text = text.strip()
+def parse_comment(comment, size=1950, n_line=18, remove_line_feeds=False):
+    if comment is None:
+        comment = ''
+    comment = comment.strip()
     if remove_line_feeds:
-        text = text.replace('\r\n', ' ').replace('\n', ' ')
-    if len(text) > size:
-        text = '{}...'.format(text[:size])
-    elif len(text.split('\n')) > n_line:
-        lines = text.split('\n')
+        comment = comment.replace('\r\n', ' ').replace('\n', ' ')
+    if len(comment) > size:
+        comment = '{}...'.format(comment[:size])
+    elif len(comment.split('\n')) > n_line:
+        lines = comment.split('\n')
         new_text = ''
         for i in range(0, n_line, 1):
             new_text += '{}\n'.format(lines[i])
-        text = new_text
-    return text
+        comment = new_text
+    return comment
 
 
 def get_year_month_of_prev_and_current_quarters(fym):

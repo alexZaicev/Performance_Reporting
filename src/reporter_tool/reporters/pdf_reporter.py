@@ -11,8 +11,8 @@ from plotly import graph_objects
 
 from common import text as text
 from common.models.entities import CpmEntity, SdmEntity, PmtAdditionalEntity
-from reporter_tool.reporters.reporter_base import RGReporterBase
 from common.utils import *
+from reporter_tool.reporters.reporter_base import RGReporterBase
 
 
 class PDFReporter(RGReporterBase):
@@ -48,8 +48,8 @@ class PDFReporter(RGReporterBase):
         self.report.set_auto_page_break(auto=False)
 
     def do_export(self, out_dir=None):
-        self.report.output(name=os.path.join(out_dir, '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)),
-                           dest='F')
+        self.report_name = '{}_{}.{}'.format(self.report_name, timestamp(), EXT_PDF)
+        self.report.output(name=os.path.join(out_dir, self.report_name), dest='F')
 
     def do_compose(self, options=None):
         self.__do_compose_cpm_scorecard(options)
@@ -1909,7 +1909,8 @@ class PDFReporter(RGReporterBase):
         if baseline is not None:
             ax.plot(x_ticks, [baseline] * len(x_ticks), color='brown', zorder=4)
         else:
-            logging.getLogger(__name__).error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
+            logging.getLogger(__name__).error(
+                'Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
 
         ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
         results = get_results_per_given_frequency(data_list, x_freq, x_ticks)

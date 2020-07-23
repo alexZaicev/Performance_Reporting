@@ -1,7 +1,7 @@
 from threading import Thread
 
 from common.logger import set_level
-from common.models.errors import RGError, RGUIError
+from common.models.errors import RGError, RGUIError, RGGenerationCompleted
 from common.models.utilities import RGConfig, RGReporterOptions
 from common.utility_base import RGUtilityBase
 from common.utils import get_cfy_prefix, try_parse
@@ -13,11 +13,11 @@ from reporter_tool.reporters.pdf_reporter import PDFReporter
 class RGToolManager(RGUtilityBase):
 
     @staticmethod
-    def execute(config):
+    def execute(config, window, loader):
         if config is None or not isinstance(config, RGConfig):
             raise RGError('RGConfig expected, actual [{}]'.format(type(config)))
         try:
-            thread = RGToolThread(config=config)
+            thread = RGToolThread(config=config, window=window, loader=loader)
             thread.start()
         except RGError as ex:
             # catch errors fro  m reporter tool and convert them to UI errors
@@ -47,13 +47,19 @@ class RGToolManager(RGUtilityBase):
 
 class RGToolThread(Thread):
 
-    def __init__(self, config, *args, **kwargs):
+    def __init__(self, config, window, loader, *args, **kwargs):
         Thread.__init__(self, *args, **kwargs)
         self.config = config
+        self.window = window
+        self.loader = loader
 
     def run(self):
         set_level(debug=self.config.debug_mode)
         # convert configuration to report options
         options = RGToolManager.parse_config_to_options(self.config)
         # generate report
-        PDFReporter(orca_path=options.orca_path).generate(options)
+        report_name = PDFReporter(orca_path=options.orca_path).generate(options)
+        # update UI
+        self.loader.dismiss()
+        self.window.release_ui()
+        self.window.show_generation_completed_dialog(report_name)

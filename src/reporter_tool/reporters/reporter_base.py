@@ -34,7 +34,8 @@ class RGReporterBase(ABC):
         self.do_prepare_export(out_dir=options.out_dir)
         self.do_export(out_dir=options.out_dir)
         self.do_clean()
-        logging.getLogger(__name__).info('Report successfully generated! [{}]'.format(options.out_dir))
+        logging.getLogger(__name__).info('Report successfully generated! [{}]'.format(self.report_name))
+        return self.report_name
 
     @abstractmethod
     def do_compose(self, options=None):

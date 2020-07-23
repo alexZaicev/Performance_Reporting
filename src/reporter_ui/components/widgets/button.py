@@ -1,5 +1,6 @@
 from tkinter import Button
 
+from common.constants import WHITE, BLACK
 from common.utils import get_color
 from reporter_ui.components.widgets.widget_base import RGWidgetBase
 

@@ -788,7 +788,7 @@ class PDFReporter(RGReporterBase):
     def __create_training_table_row(self, w, h, value):
         if value is None or (isinstance(value, str) and try_parse(value, is_float=True) is None):
             value = 0
-        self.report.cell(w / 11, h, txt='{}%'.format(int(value * 100)), align='C', border=1)
+        self.report.cell(w / 11, h, txt='{:.2f}%'.format(value * 100), align='C', border=1)
 
     def __do_compose_health_and_safety(self, h_orig, options):
         graph_size = (220, 50)

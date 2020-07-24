@@ -81,7 +81,7 @@ class PDFReporter(RGReporterBase):
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
                                         month_id=try_parse(str(options.fym)[-2:], is_int=True))
-        self.report.cell(220, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.CUSTOMER_RELATIONSHIPS, fill=1, align='C', border=1)
         self.report.cell(185, h=8.5, txt=text.SCHOOLS_IN_DEFICIT_REPORTED_QUARTERLY, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()

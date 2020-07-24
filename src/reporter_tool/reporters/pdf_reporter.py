@@ -788,7 +788,7 @@ class PDFReporter(RGReporterBase):
     def __create_training_table_row(self, w, h, value):
         if value is None or (isinstance(value, str) and try_parse(value, is_float=True) is None):
             value = 0
-        self.report.cell(w / 11, h, txt='{:.2f}%'.format(value), align='C', border=1)
+        self.report.cell(w / 11, h, txt='{}%'.format(int(value * 100)), align='C', border=1)
 
     def __do_compose_health_and_safety(self, h_orig, options):
         graph_size = (220, 50)
@@ -1133,26 +1133,27 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 2.5
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.ANXIETY_STRESS_DEPRESSION, dp_hrs_3.total,
-                                            dc_hrs_3.total, dc_hrs_3.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.INJURY_FRACTURE, dp_hrs_4.total, dc_hrs_4.total,
-                                            dc_hrs_4.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.GASTROINTESTINAL_PROBLEMS, dp_hrs_5.total,
-                                            dc_hrs_5.total, dc_hrs_5.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.OTHER_MUSCULOSKELETAL, dp_hrs_6.total, dc_hrs_6.total,
-                                            dc_hrs_6.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.OTHER_KNOWN_CAUSES, dp_hrs_7.total, dc_hrs_7.total,
-                                            dc_hrs_7.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.BACK_PROBLEMS, dp_hrs_8.total, dc_hrs_8.total,
-                                            dc_hrs_8.percentage)
+
+        items = [
+            [text.ANXIETY_STRESS_DEPRESSION, dp_hrs_3.total, dc_hrs_3.total, dc_hrs_3.percentage],
+            [text.INJURY_FRACTURE, dp_hrs_4.total, dc_hrs_4.total, dc_hrs_4.percentage],
+            [text.GASTROINTESTINAL_PROBLEMS, dp_hrs_5.total, dc_hrs_5.total, dc_hrs_5.percentage],
+            [text.OTHER_MUSCULOSKELETAL, dp_hrs_6.total, dc_hrs_6.total, dc_hrs_6.percentage],
+            [text.OTHER_KNOWN_CAUSES, dp_hrs_7.total, dc_hrs_7.total, dc_hrs_7.percentage],
+            [text.BACK_PROBLEMS, dp_hrs_8.total, dc_hrs_8.total, dc_hrs_8.percentage],
+        ]
+
+        items.sort(key=lambda i: i[3], reverse=True)
+
+        for item in items:
+            self.__create_top_reasons_table_row(x, h, w, h_line, item[0], item[1], item[2], item[3])
+            h += h_line
+
         h += h_line * 2
-        p_total = dp_hrs_3.total + dp_hrs_4.total + dp_hrs_5.total + dp_hrs_6.total + dp_hrs_7.total + dp_hrs_8.total
-        c_total = dc_hrs_3.total + dc_hrs_4.total + dc_hrs_5.total + dc_hrs_6.total + dc_hrs_7.total + dc_hrs_8.total
+        p_total, c_total = 0, 0
+        for item in items:
+            p_total += item[1]
+            c_total += item[2]
         self.__create_top_reasons_table_row(x, h, w, h_line, None, p_total, c_total, None, is_total=True)
 
     def __create_top_reasons_table_row(self, x, h, w, h_line, title, p_total, c_total, percentage, is_total=False):
@@ -1227,10 +1228,10 @@ class PDFReporter(RGReporterBase):
             self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
         v_prev, v_current = self.__adjust_prev_current_values(v_prev, v_current, is_float=True)
         variance, dot = get_variance_and_dot(v_prev, v_current)
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(v_prev), align='C')
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(v_current), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(v_prev), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(v_current), align='C')
         self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(variance), align='C')
 
     def __do_compose_instance_table(self, x, h, w, options):
         self.report.set_xy(x, h)

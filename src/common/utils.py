@@ -216,12 +216,16 @@ def get_bmk(data_list):
     result = list()
     if data_list is not None:
         for data in data_list:
-            if data.bck_result is not None and not isinstance(data.bck_result, str):
+            if data.bck_result is not None and \
+                    (isinstance(data.bck_result, str) and try_parse(data.bck_result, is_float=True) is not None):
                 result.append(data)
     return result
 
 
 def format_value(val, d_format=None):
+    if d_format is None:
+        d_format = ''
+
     if NAN is str(val).lower():
         val = text.NOT_APPLICABLE
     elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
@@ -231,16 +235,17 @@ def format_value(val, d_format=None):
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
-                logging.error('Failed to format non floating point string value [{}]'.format(val))
+                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
                 return None
             else:
                 val = tmp
         val = '%.2f' % (val * 100) + '%'
-    elif d_format.upper() == text.NUMBER.upper():
+    elif d_format.upper() == text.NUMBER.upper() or \
+            (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
-                logging.error('Failed to format non floating point string value [{}]'.format(val))
+                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
                 return None
             else:
                 val = tmp

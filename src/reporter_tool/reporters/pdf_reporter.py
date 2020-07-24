@@ -1357,7 +1357,7 @@ class PDFReporter(RGReporterBase):
         frequency = self.__get_freq(entity.measure_cfy.frequency.upper())
         d_format = entity.measure_cfy.data_format
 
-        data_current_pos_list = get_current_pos(entity.data())
+        data_current_pos_list = get_current_pos(get_data_by_date(entity.data(), self.options.fym))
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
             baseline = text.NOT_APPLICABLE
@@ -1386,10 +1386,13 @@ class PDFReporter(RGReporterBase):
         self.report.cell(15, 6, result, border='R', ln=2, align='C')
         self.report.cell(-14)
 
+        if len(str(target)) > 0:
+            target = '{} ({})'.format(target, text.IN_YEAR_FORECAST)
+
         self.__set_font(is_bold=True, size=5)
         self.report.cell(14, 6, text.TARGET, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
-        self.report.multi_cell(15, 3, '{} ({})'.format(target, text.IN_YEAR_FORECAST), border='R', ln=2, align='C')
+        self.report.multi_cell(15, 3, target, border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
@@ -1733,7 +1736,7 @@ class PDFReporter(RGReporterBase):
         self.__compose_gauge_chart(get_data_by_date(entity.data(), fym))
 
     def __compose_report_comment(self, data_list, w=93):
-        r_comment = get_report_comment(data_list)
+        r_comment = get_report_comment(get_data_by_date(data_list, self.options.fym))
         self.__set_font(size=5, family=REPORT_FONT)
         self.report.multi_cell(w, 2.5, txt=parse_comment(r_comment), align='J')
 

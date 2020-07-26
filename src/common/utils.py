@@ -217,12 +217,16 @@ def get_bmk(data_list):
     result = list()
     if data_list is not None:
         for data in data_list:
-            if data.bck_result is not None and not isinstance(data.bck_result, str):
+            if data.bck_result is not None and \
+                    (isinstance(data.bck_result, str) and try_parse(data.bck_result, is_float=True) is not None):
                 result.append(data)
     return result
 
 
 def format_value(val, d_format=None):
+    if d_format is None:
+        d_format = ''
+
     if NAN is str(val).lower():
         val = text.NOT_APPLICABLE
     elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
@@ -237,7 +241,8 @@ def format_value(val, d_format=None):
             else:
                 val = tmp
         val = '%.2f' % (val * 100) + '%'
-    elif d_format.upper() == text.NUMBER.upper():
+    elif d_format.upper() == text.NUMBER.upper() or \
+            (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
         if isinstance(val, str):
             tmp = try_parse(val, is_float=True)
             if tmp is None:
@@ -351,14 +356,15 @@ def sort_results_and_months_by_performance(r_list, freq_num, p_list, value):
     return months, results
 
 
-def sort_entities_by_performance(entities, performance, exclusions=()):
+def sort_entities_by_performance(entities, performance, fym, exclusions=()):
     def __get_data(data_list):
-        for i in range(len(data_list) - 1, 0, -1):
-            if data_list[i].performance is None:
+        data_list.sort(key=lambda x: x.year_month, reverse=True)
+        for data in data_list:
+            if data.performance is None:
                 continue
-            dp = data_list[i].performance.upper().replace(' ', '_')
+            dp = data.performance.upper().replace(' ', '_')
             if dp == performance:
-                return data_list[i]
+                return data
         return None
 
     result = list()
@@ -366,10 +372,7 @@ def sort_entities_by_performance(entities, performance, exclusions=()):
         for e in entities:
             if e.measure_cfy.m_id in exclusions or e.measure_lfy.m_id in exclusions:
                 continue
-            r_data = __get_data(e.data_cfy)
-            if r_data is None:
-                r_data = __get_data(e.data_lfy)
-
+            r_data = __get_data(get_data_by_date(e.data(), fym))
             if r_data is not None:
                 result.append(e)
     return result

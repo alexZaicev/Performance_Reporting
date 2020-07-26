@@ -81,8 +81,8 @@ class PDFReporter(RGReporterBase):
     def __do_compose_relationship_effectiveness_scorecard(self, options):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
                                         month_id=try_parse(str(options.fym)[-2:], is_int=True))
-        self.report.cell(220, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
-        self.report.cell(185, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        self.report.cell(220, h=8.5, txt=text.CUSTOMER_RELATIONSHIPS, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.SCHOOLS_IN_DEFICIT_REPORTED_QUARTERLY, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h1 = self.__do_compose_effectiveness_and_compliance(7.5 + 220, h, options)
@@ -652,7 +652,7 @@ class PDFReporter(RGReporterBase):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
                                         month_id=try_parse(str(options.fym)[-2:], is_int=True))
         self.report.cell(330, h=8.5, txt=text.FINANCIAL_MANAGEMENT, fill=1, align='C', border=1)
-        self.report.cell(75, h=8.5, txt=text.REPORTED_QUARTERLY_NO_UPDATE_RECEIVED, fill=1, align='C', border=1)
+        self.report.cell(75, h=8.5, txt=text.SCHOOLS_IN_DEFICIT_REPORTED_QUARTERLY, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         self.__do_compose_school_table(330 + 7.5, h, options)
@@ -788,7 +788,7 @@ class PDFReporter(RGReporterBase):
     def __create_training_table_row(self, w, h, value):
         if value is None or (isinstance(value, str) and try_parse(value, is_float=True) is None):
             value = 0
-        self.report.cell(w / 11, h, txt='{:.2f}%'.format(value), align='C', border=1)
+        self.report.cell(w / 11, h, txt='{:.2f}%'.format(value * 100), align='C', border=1)
 
     def __do_compose_health_and_safety(self, h_orig, options):
         graph_size = (220, 50)
@@ -1133,26 +1133,27 @@ class PDFReporter(RGReporterBase):
         h += h_line
 
         h_line = 2.5
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.ANXIETY_STRESS_DEPRESSION, dp_hrs_3.total,
-                                            dc_hrs_3.total, dc_hrs_3.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.INJURY_FRACTURE, dp_hrs_4.total, dc_hrs_4.total,
-                                            dc_hrs_4.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.GASTROINTESTINAL_PROBLEMS, dp_hrs_5.total,
-                                            dc_hrs_5.total, dc_hrs_5.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.OTHER_MUSCULOSKELETAL, dp_hrs_6.total, dc_hrs_6.total,
-                                            dc_hrs_6.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.OTHER_KNOWN_CAUSES, dp_hrs_7.total, dc_hrs_7.total,
-                                            dc_hrs_7.percentage)
-        h += h_line
-        self.__create_top_reasons_table_row(x, h, w, h_line, text.BACK_PROBLEMS, dp_hrs_8.total, dc_hrs_8.total,
-                                            dc_hrs_8.percentage)
+
+        items = [
+            [text.ANXIETY_STRESS_DEPRESSION, dp_hrs_3.total, dc_hrs_3.total, dc_hrs_3.percentage],
+            [text.INJURY_FRACTURE, dp_hrs_4.total, dc_hrs_4.total, dc_hrs_4.percentage],
+            [text.GASTROINTESTINAL_PROBLEMS, dp_hrs_5.total, dc_hrs_5.total, dc_hrs_5.percentage],
+            [text.OTHER_MUSCULOSKELETAL, dp_hrs_6.total, dc_hrs_6.total, dc_hrs_6.percentage],
+            [text.OTHER_KNOWN_CAUSES, dp_hrs_7.total, dc_hrs_7.total, dc_hrs_7.percentage],
+            [text.BACK_PROBLEMS, dp_hrs_8.total, dc_hrs_8.total, dc_hrs_8.percentage],
+        ]
+
+        items.sort(key=lambda i: i[3], reverse=True)
+
+        for item in items:
+            self.__create_top_reasons_table_row(x, h, w, h_line, item[0], item[1], item[2], item[3])
+            h += h_line
+
         h += h_line * 2
-        p_total = dp_hrs_3.total + dp_hrs_4.total + dp_hrs_5.total + dp_hrs_6.total + dp_hrs_7.total + dp_hrs_8.total
-        c_total = dc_hrs_3.total + dc_hrs_4.total + dc_hrs_5.total + dc_hrs_6.total + dc_hrs_7.total + dc_hrs_8.total
+        p_total, c_total = 0, 0
+        for item in items:
+            p_total += item[1]
+            c_total += item[2]
         self.__create_top_reasons_table_row(x, h, w, h_line, None, p_total, c_total, None, is_total=True)
 
     def __create_top_reasons_table_row(self, x, h, w, h_line, title, p_total, c_total, percentage, is_total=False):
@@ -1227,10 +1228,10 @@ class PDFReporter(RGReporterBase):
             self.report.cell(w / 2 - 10, h=h_line, txt=title, align='L')
         v_prev, v_current = self.__adjust_prev_current_values(v_prev, v_current, is_float=True)
         variance, dot = get_variance_and_dot(v_prev, v_current)
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(v_prev), align='C')
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(v_current), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(v_prev), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(v_current), align='C')
         self.report.cell(w / 9, h=h_line, txt='{}'.format(dot), align='C')
-        self.report.cell(w / 9, h=h_line, txt='{}'.format(variance), align='C')
+        self.report.cell(w / 9, h=h_line, txt='{:.2f}'.format(variance), align='C')
 
     def __do_compose_instance_table(self, x, h, w, options):
         self.report.set_xy(x, h)
@@ -1356,7 +1357,7 @@ class PDFReporter(RGReporterBase):
         frequency = self.__get_freq(entity.measure_cfy.frequency.upper())
         d_format = entity.measure_cfy.data_format
 
-        data_current_pos_list = get_current_pos(entity.data())
+        data_current_pos_list = get_current_pos(get_data_by_date(entity.data(), self.options.fym))
         if len(data_current_pos_list) == 0:
             dot, result, target = '', '', ''
             baseline = text.NOT_APPLICABLE
@@ -1385,10 +1386,13 @@ class PDFReporter(RGReporterBase):
         self.report.cell(15, 6, result, border='R', ln=2, align='C')
         self.report.cell(-14)
 
+        if len(str(target)) > 0:
+            target = '{} ({})'.format(target, text.IN_YEAR_FORECAST)
+
         self.__set_font(is_bold=True, size=5)
         self.report.cell(14, 6, text.TARGET, border='L', ln=0, align='C')
         self.__set_font(is_bold=False, size=5)
-        self.report.multi_cell(15, 3, '{} ({})'.format(target, text.IN_YEAR_FORECAST), border='R', ln=2, align='C')
+        self.report.multi_cell(15, 3, target, border='R', ln=2, align='C')
         self.report.cell(-14)
 
         self.__set_font(is_bold=True, size=5)
@@ -1476,21 +1480,21 @@ class PDFReporter(RGReporterBase):
         n_sorted = len(e_sorted)
         self.report.cell(20, 6, '{}'.format(n_sorted), align='L')
 
-        b_sorted = sort_entities_by_performance(e_sorted, PERF_BLUE)
+        b_sorted = sort_entities_by_performance(e_sorted, PERF_BLUE, self.options.fym)
         exc = [x.measure_cfy.m_id for x in b_sorted]
-        g_sorted = sort_entities_by_performance(e_sorted, PERF_GREEN, exclusions=exc)
+        g_sorted = sort_entities_by_performance(e_sorted, PERF_GREEN, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in g_sorted]
-        r_sorted = sort_entities_by_performance(e_sorted, PERF_RED, exclusions=exc)
+        r_sorted = sort_entities_by_performance(e_sorted, PERF_RED, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in r_sorted]
-        a_sorted = sort_entities_by_performance(e_sorted, PERF_AMBER, exclusions=exc)
+        a_sorted = sort_entities_by_performance(e_sorted, PERF_AMBER, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in a_sorted]
-        nyd_sorted = sort_entities_by_performance(e_sorted, PERF_NYD, exclusions=exc)
+        nyd_sorted = sort_entities_by_performance(e_sorted, PERF_NYD, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in nyd_sorted]
-        pr_sorted = sort_entities_by_performance(e_sorted, PERF_PREV_REPORTED, exclusions=exc)
+        pr_sorted = sort_entities_by_performance(e_sorted, PERF_PREV_REPORTED, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in pr_sorted]
-        aw_sorted = sort_entities_by_performance(e_sorted, PERF_AWAITING, exclusions=exc)
+        aw_sorted = sort_entities_by_performance(e_sorted, PERF_AWAITING, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in aw_sorted]
-        t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, exclusions=exc)
+        t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, self.options.fym, exclusions=exc)
         h += 3
         self.report.set_xy(15, h)
         self.report.cell(35, 6, '{}:'.format(text.AVAILABLE_TO_REPORT), align='L')
@@ -1732,7 +1736,7 @@ class PDFReporter(RGReporterBase):
         self.__compose_gauge_chart(get_data_by_date(entity.data(), fym))
 
     def __compose_report_comment(self, data_list, w=93):
-        r_comment = get_report_comment(data_list)
+        r_comment = get_report_comment(get_data_by_date(data_list, self.options.fym))
         self.__set_font(size=5, family=REPORT_FONT)
         self.report.multi_cell(w, 2.5, txt=parse_comment(r_comment), align='J')
 

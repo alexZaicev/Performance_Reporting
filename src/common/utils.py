@@ -355,14 +355,15 @@ def sort_results_and_months_by_performance(r_list, freq_num, p_list, value):
     return months, results
 
 
-def sort_entities_by_performance(entities, performance, exclusions=()):
+def sort_entities_by_performance(entities, performance, fym, exclusions=()):
     def __get_data(data_list):
-        for i in range(len(data_list) - 1, 0, -1):
-            if data_list[i].performance is None:
+        data_list.sort(key=lambda x: x.year_month, reverse=True)
+        for data in data_list:
+            if data.performance is None:
                 continue
-            dp = data_list[i].performance.upper().replace(' ', '_')
+            dp = data.performance.upper().replace(' ', '_')
             if dp == performance:
-                return data_list[i]
+                return data
         return None
 
     result = list()
@@ -370,10 +371,7 @@ def sort_entities_by_performance(entities, performance, exclusions=()):
         for e in entities:
             if e.measure_cfy.m_id in exclusions or e.measure_lfy.m_id in exclusions:
                 continue
-            r_data = __get_data(e.data_cfy)
-            if r_data is None:
-                r_data = __get_data(e.data_lfy)
-
+            r_data = __get_data(get_data_by_date(e.data(), fym))
             if r_data is not None:
                 result.append(e)
     return result

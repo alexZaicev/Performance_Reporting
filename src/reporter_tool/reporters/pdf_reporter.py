@@ -1480,21 +1480,21 @@ class PDFReporter(RGReporterBase):
         n_sorted = len(e_sorted)
         self.report.cell(20, 6, '{}'.format(n_sorted), align='L')
 
-        b_sorted = sort_entities_by_performance(e_sorted, PERF_BLUE)
+        b_sorted = sort_entities_by_performance(e_sorted, PERF_BLUE, self.options.fym)
         exc = [x.measure_cfy.m_id for x in b_sorted]
-        g_sorted = sort_entities_by_performance(e_sorted, PERF_GREEN, exclusions=exc)
+        g_sorted = sort_entities_by_performance(e_sorted, PERF_GREEN, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in g_sorted]
-        r_sorted = sort_entities_by_performance(e_sorted, PERF_RED, exclusions=exc)
+        r_sorted = sort_entities_by_performance(e_sorted, PERF_RED, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in r_sorted]
-        a_sorted = sort_entities_by_performance(e_sorted, PERF_AMBER, exclusions=exc)
+        a_sorted = sort_entities_by_performance(e_sorted, PERF_AMBER, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in a_sorted]
-        nyd_sorted = sort_entities_by_performance(e_sorted, PERF_NYD, exclusions=exc)
+        nyd_sorted = sort_entities_by_performance(e_sorted, PERF_NYD, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in nyd_sorted]
-        pr_sorted = sort_entities_by_performance(e_sorted, PERF_PREV_REPORTED, exclusions=exc)
+        pr_sorted = sort_entities_by_performance(e_sorted, PERF_PREV_REPORTED, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in pr_sorted]
-        aw_sorted = sort_entities_by_performance(e_sorted, PERF_AWAITING, exclusions=exc)
+        aw_sorted = sort_entities_by_performance(e_sorted, PERF_AWAITING, self.options.fym, exclusions=exc)
         exc = exc + [x.measure_cfy.m_id for x in aw_sorted]
-        t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, exclusions=exc)
+        t_sorted = sort_entities_by_performance(e_sorted, PERF_TREND, self.options.fym, exclusions=exc)
         h += 3
         self.report.set_xy(15, h)
         self.report.cell(35, 6, '{}:'.format(text.AVAILABLE_TO_REPORT), align='L')

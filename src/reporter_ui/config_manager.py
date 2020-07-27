@@ -35,6 +35,7 @@ class RGConfigManager(RGUtilityBase):
 
             tree = RGConfigManager.__get_valid_config_tree(s_xml)
             config = RGConfigManager.__parse_config_from_xml(tree)
+            config.measure_entries.sort(key=lambda x: x.m_id)
         except RGError as ex:
             raise ex
         except Exception as ex:
@@ -110,7 +111,7 @@ class RGConfigManager(RGUtilityBase):
                                 m_id=c_node.get(RGConfigManager.XML_ATTR_ID),
                                 m_ref_no=c_node.get(RGConfigManager.XML_ATTR_REF_NO),
                                 m_title=c_node.get(RGConfigManager.XML_ATTR_TITLE),
-                                selected=c_node.get(RGConfigManager.XML_ATTR_SELECTED) == 1
+                                selected=c_node.get(RGConfigManager.XML_ATTR_SELECTED) == str(1)
                             )
                         )
                     config.measure_entries = measures

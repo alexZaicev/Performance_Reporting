@@ -182,3 +182,7 @@ YES = 'Yes'
 NO = 'No'
 TEMPLATES_FOR_CURRENT_AND_LAST_FISCAL_YEARS_NOT_FOUND = 'Templates for current ({}) and last ({}) fiscal years' \
                                                         ' not found'
+EXCLUDED = 'Excluded'
+MEASURE_ID = 'ID'
+MEASURE_REFERENCE_NO = 'Ref. No.'
+MEASURE_TITLE = 'Title'

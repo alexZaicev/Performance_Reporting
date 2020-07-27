@@ -5,6 +5,7 @@ from common.text import *
 from common.utils import get_color
 from reporter_ui.components.component_base import RGComponentBase
 from reporter_ui.components.widgets.label import RGLabel
+from reporter_ui.components.widgets.table import RGTable, RGTableModel
 
 
 class ExclusionFrame(RGComponentBase):
@@ -27,3 +28,9 @@ class ExclusionFrame(RGComponentBase):
                            x=child_xy[0], y=child_xy[1])
         lbl_name.build()
         child_xy[1] += lbl_name.size()[1] + 5
+
+        model = RGTableModel(headers=(EXCLUDED, MEASURE_ID, MEASURE_REFERENCE_NO, MEASURE_TITLE),
+                             data=self.config.measure_entries)
+        table = RGTable(window=frame, config=self.config, model=model, width=self.size[0] * 0.98,
+                        height=self.size[1] * 0.885, x=child_xy[0], y=child_xy[1])
+        table.build()

@@ -226,31 +226,33 @@ def get_bmk(data_list):
 def format_value(val, d_format=None):
     if d_format is None:
         d_format = ''
+        
+    if val is not None:
 
-    if NAN is str(val).lower():
-        val = text.NOT_APPLICABLE
-    elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
-        if len(val) > MAX_FORMATTED_VALUE_SIZE:
-            val = '{}..'.format(val[:MAX_FORMATTED_VALUE_SIZE - 3])
-    elif d_format.upper() == PERCENTAGE.upper():
-        if isinstance(val, str):
-            tmp = try_parse(val, is_float=True)
-            if tmp is None:
-                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
-                return None
-            else:
-                val = tmp
-        val = '%.2f' % (val * 100) + '%'
-    elif d_format.upper() == text.NUMBER.upper() or \
-            (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
-        if isinstance(val, str):
-            tmp = try_parse(val, is_float=True)
-            if tmp is None:
-                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
-                return None
-            else:
-                val = tmp
-        val = '%.2f' % val
+        if NAN is str(val).lower():
+            val = text.NOT_APPLICABLE
+        elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
+            if len(val) > MAX_FORMATTED_VALUE_SIZE:
+                val = '{}..'.format(val[:MAX_FORMATTED_VALUE_SIZE - 3])
+        elif d_format.upper() == PERCENTAGE.upper():
+            if isinstance(val, str):
+                tmp = try_parse(val, is_float=True)
+                if tmp is None:
+                    logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
+                    return None
+                else:
+                    val = tmp
+            val = '%.2f' % (val * 100) + '%'
+        elif d_format.upper() == text.NUMBER.upper() or \
+                (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
+            if isinstance(val, str):
+                tmp = try_parse(val, is_float=True)
+                if tmp is None:
+                    logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
+                    return None
+                else:
+                    val = tmp
+            val = '%.2f' % val
     return str(val)
 
 

@@ -25,7 +25,7 @@ class RGToolManager(RGUtilityBase):
         return RGReporterOptions(
             out_dir=config.out_dir,
             orca_path=config.orca_path,
-            exclusions=[x.m_id for x in config.measure_entries],
+            exclusions=[x.m_id for x in config.measure_entries if x.selected],
             entities=RGToolManager.__get_entities(config),
             images=RGToolManager.__get_image_files(config),
             fym=try_parse('{}{:02d}'.format(get_cfy_prefix(cfy=config.f_year).replace('-', ''), config.f_month),

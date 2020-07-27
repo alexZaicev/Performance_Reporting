@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<!-- XML Schema Generated from XML Document on Sun Jul 19 2020 23:03:29 GMT+0100 (British Summer Time) -->
+	<!-- with XmlGrid.net Free Online Service http://xmlgrid.net -->
+	<xs:element name="configuration">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="out_dir" type="xs:string"/>
+				<xs:element name="template_dir" type="xs:string"/>
+				<xs:element name="orca_path" type="xs:string"/>
+				<xs:element name="measures">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="measure" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string"/>
+									<xs:attribute name="ref_no" type="xs:string"/>
+									<xs:attribute name="title" type="xs:string"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

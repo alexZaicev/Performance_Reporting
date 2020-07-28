@@ -82,7 +82,7 @@ class PDFReporter(RGReporterBase):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
                                         month_id=try_parse(str(options.fym)[-2:], is_int=True))
         self.report.cell(220, h=8.5, txt=text.CUSTOMER_RELATIONSHIPS, fill=1, align='C', border=1)
-        self.report.cell(185, h=8.5, txt=text.SCHOOLS_IN_DEFICIT_REPORTED_QUARTERLY, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.EFFECTIVENESS_AND_COMPLIANCE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h1 = self.__do_compose_effectiveness_and_compliance(7.5 + 220, h, options)

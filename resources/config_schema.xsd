@@ -8,6 +8,8 @@
 				<xs:element name="out_dir" type="xs:string"/>
 				<xs:element name="template_dir" type="xs:string"/>
 				<xs:element name="orca_path" type="xs:string"/>
+				<xs:element name="fiscal_year_band" type="xs:integer"/>
+				<xs:element name="debug_mode" type="xs:boolean"/>
 				<xs:element name="measures">
 					<xs:complexType>
 						<xs:sequence>
@@ -16,6 +18,7 @@
 									<xs:attribute name="id" type="xs:string"/>
 									<xs:attribute name="ref_no" type="xs:string"/>
 									<xs:attribute name="title" type="xs:string"/>
+									<xs:attribute name="selected" type="xs:integer"/>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>

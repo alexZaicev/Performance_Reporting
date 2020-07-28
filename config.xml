@@ -1,14 +1,92 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <configuration>
   <out_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</out_dir>
-  <template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\output</template_dir>
+  <template_dir>C:\Users\u722245\REPOS\GIT\Performance_Reporting\templates</template_dir>
   <orca_path>C:\Users\u722245\AppData\Local\Programs\orca\orca.exe</orca_path>
+  <fiscal_year_band>5</fiscal_year_band>
+  <debug_mode>true</debug_mode>
   <measures>
-    <measure id="1_01" ref_no="CMP1" title="This is CMP1 measure"/>
-    <measure id="1_02" ref_no="CMP2" title="This is CMP2 measure"/>
-    <measure id="1_03" ref_no="CMP3" title="This is CMP3 measure"/>
-    <measure id="1_04" ref_no="CMP4" title="This is CMP4 measure"/>
-    <measure id="1_05" ref_no="CMP5" title="This is CMP5 measure"/>
-    <measure id="1_06" ref_no="CMP6" title="This is CMP6 measure"/>
+    <measure id="1_01" ref_no="1.1.3" title="Number of apprenticeship starts per 1,000 of the Birmingham population" selected="1"/>
+    <measure id="1_02" ref_no="1.1.1 " title="The number of jobs created " selected="0"/>
+    <measure id="1_03" ref_no="1.2.7" title="The number of jobs created through the Business Growth Programme" selected="0"/>
+    <measure id="1_04" ref_no="1.2.1" title="Birmingham's unemployment rate verses the national average" selected="0"/>
+    <measure id="1_05" ref_no="1.2.4" title="Private sector investment in the Enterprise Zone " selected="0"/>
+    <measure id="1_06" ref_no="1.2.5" title="Public sector investment  in the Enterprise Zone " selected="0"/>
+    <measure id="1_07" ref_no="1.3.1" title="Small and Medium Enterprises starts and closures" selected="0"/>
+    <measure id="1_08" ref_no="1.2.8" title="Private sector investment  through the Business Growth Programme" selected="0"/>
+    <measure id="1_09" ref_no="1.3.2" title="New employment floor space created and/or refurbished floor space (sq. m.) as a result of investment in infrastructure and development activity  in the Enterprise Zone" selected="0"/>
+    <measure id="1_10" ref_no="1.4.2" title="Increased percentage of trips taken by bicycles " selected="0"/>
+    <measure id="1_11" ref_no="1.4.4" title="Percentage of dangerous defects ('Category 1' defects) on streets made safe within one hour" selected="0"/>
+    <measure id="1_12" ref_no="1.4.5" title="Percentage of dangerous defects ('Category 1' defects) on streets full repaired within 28 days" selected="0"/>
+    <measure id="1_13" ref_no="4.2.1" title="Number of new homes completed in the city across a range of tenures" selected="0"/>
+    <measure id="1_14" ref_no="4.2.3" title="Number (and percentage) of homes built that are affordable" selected="0"/>
+    <measure id="1_15" ref_no="4.7.2" title="Reducing the unemployment gap between wards" selected="0"/>
+    <measure id="1_16" ref_no="1.2.2 " title="Narrowing the pay gap for citizens across the city" selected="0"/>
+    <measure id="2_01" ref_no="1.1.5" title="The number of Birmingham City Council (BCC) apprenticeships directly within the City Council" selected="0"/>
+    <measure id="3_01" ref_no="3.3.4" title="The percentage of adults in contact with secondary mental health services in employment" selected="0"/>
+    <measure id="3_02" ref_no="3.3.2 " title="The percentage of service users aged 18-64 with learning disabilities, in employment" selected="0"/>
+    <measure id="3_03" ref_no="3.3.2a" title="Placing vulnerable urban adults into employment." selected="0"/>
+    <measure id="3_04" ref_no="3.1.1" title="The proportion of people who use services who reported that they had as much social contact as they would like" selected="0"/>
+    <measure id="3_05" ref_no="3.1.2" title="The proportion of carers who reported that they had as much social contact as they would like" selected="0"/>
+    <measure id="3_06" ref_no="3.1.3" title="The number of people who have Shared Lives" selected="0"/>
+    <measure id="3_07" ref_no="4.5.3" title="Percentage of completed safeguarding enquiries involving concerns about domestic abuse" selected="0"/>
+    <measure id="3_08" ref_no="4.5.3a " title="Number of completed safeguarding enquiries which involved concerns about domestic abuse" selected="0"/>
+    <measure id="3_09" ref_no="3.2.1" title="The number of long term admissions to residential or nursing care (per 100.000 over 65s)" selected="0"/>
+    <measure id="3_10" ref_no="3.2.2" title="Reduced delayed transfers of care (Daily Average Delay beds per 100,000 18+ population - combined figure - Social Care only and joint NHS and Social Care" selected="0"/>
+    <measure id="3_11" ref_no="3.2.4" title="Percentage of concluded Safeguarding enquiries where the individual or representative was asked what their desired outcomes were" selected="0"/>
+    <measure id="3_12" ref_no="3.3.1" title="Uptake of Direct Payments" selected="0"/>
+    <measure id="3_13" ref_no="3.2.5" title="Proportion of clients reviewed, reassessed or assessed within 12 months" selected="0"/>
+    <measure id="3_14" ref_no="3.2.6" title="The proportion of clients receiving Residential, Nursing or Home Care, or Care and Support (supported living) from a provider that is rated as Silver or Gold" selected="0"/>
+    <measure id="3_15" ref_no="3.3.7" title="Social work client satisfaction - postcard questionnaire" selected="1"/>
+    <measure id="3_16" ref_no="3.3.5" title="The percentage of people who receive Adult Social Care in their own home" selected="0"/>
+    <measure id="4_01" ref_no="1.4.12" title="Miles travelled on free bicycles provided by the Council" selected="0"/>
+    <measure id="4_02" ref_no="2.4.6" title="Children under 5 attendance at wellbeing centres " selected="0"/>
+    <measure id="4_03" ref_no="2.4.7" title="Children 6-15 years attendance at wellbeing centres" selected="0"/>
+    <measure id="4_04" ref_no="3.1.4" title="Number of over 60�s participating in a wellbeing programme" selected="0"/>
+    <measure id="4_05" ref_no="3.1.5" title="Increase the number of our most deprived citizens who have engaged with our wellbeing service, been to an active park or attended a wellbeing centre" selected="1"/>
+    <measure id="4_06" ref_no="4.1.1" title="Improved cleanliness � streets and green spaces" selected="0"/>
+    <measure id="4_07" ref_no="4.1.2" title="Increase Recycling, Reuse, and Green Waste" selected="1"/>
+    <measure id="4_08" ref_no="4.1.3" title="Reduced collected household waste � kg per household " selected="0"/>
+    <measure id="4_09" ref_no="4.1.7" title="Percentage of reported refuse and recycling collections achieved " selected="0"/>
+    <measure id="4_10" ref_no="4.2.2" title="Number of properties improved in the Private Rented Sector as a result of Local Authority intervention" selected="0"/>
+    <measure id="4_11" ref_no="4.2.12" title="Private sector empty properties brought back into use (cumulative)" selected="0"/>
+    <measure id="4_12" ref_no="4.2.4" title="Minimising the number and percentage of households living in temporary accommodation per 1,000 households" selected="0"/>
+    <measure id="4_13" ref_no="4.3.1" title="Reducing the number of rough sleepers across the city" selected="0"/>
+    <measure id="4_14" ref_no="4.3.2" title="Households where homelessness is prevented or relieved" selected="0"/>
+    <measure id="4_15" ref_no="4.8.1" title="Increased number of international, sporting, cultural and major events in our landmark venues, shared spaces, communities and libraries" selected="0"/>
+    <measure id="5_01" ref_no="2.1.1" title="Percentage of new Education Health Care (EHC) plans issued within 20 weeks, excluding exceptions" selected="0"/>
+    <measure id="5_02" ref_no="2.1.1a" title="Quality of Education Health Care Plans - Monthly Case Audits" selected="0"/>
+    <measure id="5_03" ref_no="2.1.3" title="Monthly Operational Commissioning Group assessment of Birmingham Children's Trust performance" selected="0"/>
+    <measure id="5_04" ref_no="2.2.1" title="Percentage of children achieving a good level of development - Early Years Foundation Stage" selected="0"/>
+    <measure id="5_05" ref_no="2.2.2a" title="Key Stage 2 Attainment - proportion of children reaching the expected standard in Reading, Writing and Maths" selected="0"/>
+    <measure id="5_06" ref_no="2.2.2b" title="Key Stage Attainment Percentage of children achieving a strong pass (9-5) in English and Maths" selected="0"/>
+    <measure id="5_07" ref_no="2.4.2 " title="Number of 2 year old children accessing flexible free entitlement to early education (EEE)" selected="0"/>
+    <measure id="5_08" ref_no="2.3.1" title="The proportion of years 12 to 13 not in employment, education or training (NEET)" selected="0"/>
+    <measure id="5_09" ref_no="2.3.1a" title="The proportion of years 12 to 13 pupils whose activity is unknown" selected="0"/>
+    <measure id="5_10" ref_no="2.3.5" title="Children in Care � Progress 8 � Average progress between Key Stage 2 and Key Stage 4 across eight key subjects" selected="0"/>
+    <measure id="6_01" ref_no="2.4.1a" title="Percentage of children overweight or obese at reception" selected="0"/>
+    <measure id="6_02" ref_no="2.4.1b" title="Percentage of children overweight or obese at year 6" selected="0"/>
+    <measure id="6_03" ref_no="3.3.8" title="Proportion of eligible population receiving an NHS health check" selected="0"/>
+    <measure id="6_04" ref_no="3.3.9" title="Percentage of opiate drug users who are in full time employment for 10 working days following or upon discharge" selected="0"/>
+    <measure id="6_05" ref_no="3.3.9a" title="Percentage of non-opiate drug users who are in full time employment for 10 working days following or upon discharge" selected="0"/>
+    <measure id="6_06" ref_no="4.4.2" title="Reduce Particulate Matter levels in the City�s air quality management areas " selected="0"/>
+    <measure id="7_01" ref_no="4.5.1" title="How safe do you feel outside in your local area during the day? (Citizen perception measure).      " selected="0"/>
+    <measure id="7_02" ref_no="4.5.2" title="How safe do you feel outside in your local area after dark? (Citizen perception measure).       " selected="0"/>
+    <measure id="7_03" ref_no="4.6.1" title="It is important to me to be able to influence decisions that affect my local area (Citizen perception measure)" selected="0"/>
+    <measure id="7_04" ref_no="4.6.2" title="I can influence decisions about public services that affect the local area" selected="0"/>
+    <measure id="7_05" ref_no="4.6.3" title="I am involved in making decisions about public services that affect my local area (Citizen Perception measure)" selected="0"/>
+    <measure id="7_06" ref_no="4.7.3" title="To what extent do you agree or disagree with the statement &quot;I am proud to live in Birmingham&quot;? (Citizen perception measure)." selected="0"/>
+    <measure id="8_01" ref_no="5.1.1" title="Volume of Games contracts awarded to Birmingham/W Midlands companies" selected="0"/>
+    <measure id="8_02" ref_no="5.1.2" title="Volume of / development of sustainable business on the back of the Games" selected="0"/>
+    <measure id="8_03" ref_no="5.2.1" title="Creation and use of Health and well-being initiatives" selected="0"/>
+    <measure id="8_04" ref_no="5.2.2a" title="Percentage rise in young people engaged in physical activity" selected="0"/>
+    <measure id="8_05" ref_no="5.3.1" title="Delivery of the transport and sporting infrastructure on time and on budget" selected="1"/>
+    <measure id="8_06" ref_no="5.3.2" title="Community use of sporting infrastructure � making the master plans a reality" selected="0"/>
+    <measure id="8_07" ref_no="5.4.1" title="Apprenticeships/skills courses/entry level employment offered to unemployed Birmingham citizens across core Games related industries � security, catering, cleaning, technology etc." selected="1"/>
+    <measure id="8_08" ref_no="5.4.2" title="Internships and skills development as a result offered and delivered by Games partners and / or supporting businesses" selected="1"/>
+    <measure id="8_09" ref_no="5.5.1" title="Community volunteer projects delivered as a result of the Games (e.g. �spring clean� of streets)" selected="1"/>
+    <measure id="8_10" ref_no="5.5.2" title="Use the games to create / foster active citizenship projects and ensure those volunteers play a role in the Games" selected="0"/>
+    <measure id="8_11" ref_no="5.5.3" title="Citizen engagement with the cultural programme" selected="0"/>
+    <measure id="8_12" ref_no="5.5.4" title="Residents� survey measure to link active life-styles, culture and wellbeing with cohesion impact" selected="1"/>
   </measures>
 </configuration>

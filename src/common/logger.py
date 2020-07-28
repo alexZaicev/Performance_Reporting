@@ -33,9 +33,17 @@ def init_logger(debug=False):
         log_lvl = logging.INFO
     logging.basicConfig(
         level=log_lvl,
-        format='%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s',
+        format='%(asctime)s [%(name)s] [%(levelname)-5.5s]  %(message)s',
         handlers=[
             logging.FileHandler(join(log_root, 'RG_{}.log'.format(timestamp))),
             logging.StreamHandler()
         ]
     )
+
+
+def set_level(debug=False):
+    if debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger(__name__).info('DEBUG mode enabled')
+    else:
+        logging.getLogger().setLevel(logging.INFO)

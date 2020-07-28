@@ -16,6 +16,10 @@ def timestamp():
     return '{:02d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
+def str_blank(s):
+    return s is None or len(s) == 0
+
+
 def get_prev_fiscal_month(month=None, fm=None):
     if fm is None:
         FM = {
@@ -230,7 +234,7 @@ def get_bmk(data_list):
 def format_value(val, d_format=None):
     if d_format is None:
         d_format = ''
-        
+
     if val is not None:
 
         if NAN is str(val).lower():
@@ -242,7 +246,8 @@ def format_value(val, d_format=None):
             if isinstance(val, str):
                 tmp = try_parse(val, is_float=True)
                 if tmp is None:
-                    logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
+                    logging.getLogger(__name__).error(
+                        'Failed to format non floating point string value [{}]'.format(val))
                     return None
                 else:
                     val = tmp
@@ -252,7 +257,8 @@ def format_value(val, d_format=None):
             if isinstance(val, str):
                 tmp = try_parse(val, is_float=True)
                 if tmp is None:
-                    logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
+                    logging.getLogger(__name__).error(
+                        'Failed to format non floating point string value [{}]'.format(val))
                     return None
                 else:
                     val = tmp
@@ -328,7 +334,11 @@ def get_performance_per_given_frequency(data_list, frequency, freq_num):
             if len(d_fn) == 0:
                 result.append(None)
             else:
-                result.append(d_fn[len(d_fn) - 1].performance.upper())
+                p = d_fn[len(d_fn) - 1].performance
+                if str_blank(p):
+                    result.append(None)
+                else:
+                    result.append(str(p).upper())
     return result
 
 
@@ -563,10 +573,6 @@ def get_year_month_of_prev_and_current_quarters(fym):
     if pym is not None:
         pym = try_parse('{}{}{:02d}'.format(f_year, str(f_year + 1)[-2:], get_fiscal_month_id(pym)), is_int=True)
     return pym, cym
-
-
-def str_blank(s):
-    return s is None or len(s) == 0
 
 
 def get_month_name_from_id(month_id):

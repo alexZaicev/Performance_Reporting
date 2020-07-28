@@ -11,3 +11,4 @@ PyInstaller~=3.6
 lxml~=4.5.2
 xmlschema~=1.2.2
 rstr~=2.2.6
+Pillow~=6.2.2

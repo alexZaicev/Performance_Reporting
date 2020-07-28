@@ -30,10 +30,10 @@ if %errorlevel% neq 0 python -m pip install fpdf2~=2.0.5
 python -c "import xlrd" 2> NUL
 if %errorlevel% neq 0 python -m pip install xlrd~=1.2.0
 
-python -c "import xlrd" 2> NUL
+python -c "import numpy" 2> NUL
 if %errorlevel% neq 0 python -m pip install numpy~=1.19.0
 
-python -c "import xlrd" 2> NUL
+python -c "import psutil" 2> NUL
 if %errorlevel% neq 0 python -m pip install psutil~=5.7.2
 
 :: Check if Orca is installed

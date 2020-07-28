@@ -74,7 +74,7 @@ class PDFReporter(RGReporterBase):
         if f_image is not None:
             self.report.image(f_image.path, x=x, y=y, w=w, h=h)
         else:
-            logging.error(
+            logging.getLogger(__name__).error(
                 'Could not find image of type [{}] that would satisfy provided fiscal data [{}]'.format(f_type,
                                                                                                         options.fym))
 
@@ -82,7 +82,7 @@ class PDFReporter(RGReporterBase):
         h = self.__create_scorecard_top(add_page=True, h=2.25, w=405,
                                         month_id=try_parse(str(options.fym)[-2:], is_int=True))
         self.report.cell(220, h=8.5, txt=text.CUSTOMER_RELATIONSHIPS, fill=1, align='C', border=1)
-        self.report.cell(185, h=8.5, txt=text.SCHOOLS_IN_DEFICIT_REPORTED_QUARTERLY, fill=1, align='C', border=1)
+        self.report.cell(185, h=8.5, txt=text.EFFECTIVENESS_AND_COMPLIANCE, fill=1, align='C', border=1)
         h += 8.5
         self.__reset_colors()
         h1 = self.__do_compose_effectiveness_and_compliance(7.5 + 220, h, options)
@@ -1597,7 +1597,7 @@ class PDFReporter(RGReporterBase):
                 continue
             # check if entity should be excluded from the report
             if options.exclusions is not None and entity.measure_cfy.m_id in options.exclusions:
-                logging.debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
+                logging.getLogger(__name__).debug('Ignoring entity [{}]'.format(entity.measure_lfy.m_id))
                 continue
             # check if coords are equal to initial left-top
             # then create new page
@@ -1897,7 +1897,8 @@ class PDFReporter(RGReporterBase):
         if baseline is not None:
             ax.plot(x_ticks, [baseline] * len(x_ticks), color='brown', zorder=4)
         else:
-            logging.error('Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
+            logging.getLogger(__name__).error(
+                'Invalid floating point value for measure baseline [{}]'.format(measure.baseline))
 
         ax.grid(color='grey', which='major', axis='y', linestyle='-', linewidth=0.5, zorder=0)
         results = get_results_per_given_frequency(data_list, x_freq, x_ticks)

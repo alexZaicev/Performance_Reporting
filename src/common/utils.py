@@ -16,6 +16,10 @@ def timestamp():
     return '{:02d}{:02d}{:02d}{:02d}{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
+def str_blank(s):
+    return s is None or len(s) == 0
+
+
 def get_prev_fiscal_month(month=None, fm=None):
     if fm is None:
         FM = {
@@ -66,7 +70,7 @@ def get_dir_path(name=ROOT):
     try:
         return DIR_PATH[name]
     except KeyError:
-        logging.error('Unknown directory type [{}]'.format(name))
+        logging.getLogger(__name__).error('Unknown directory type [{}]'.format(name))
     return None
 
 
@@ -88,12 +92,13 @@ def get_color(name=BLACK):
         GREY: RGColor(r=128, g=128, b=128),
         DARK_BLUE: RGColor(r=31, g=73, b=125),
         AQUA: RGColor(r=83, g=141, b=213),
-        LIGHT_AQUA: RGColor(220, 230, 241)
+        LIGHT_AQUA: RGColor(220, 230, 241),
+        DIM_WHITE: RGColor(242, 242, 242)
     }
     try:
         return COLOR_MAP[name]
     except KeyError:
-        logging.error('Unknown color name [{}]'.format(name))
+        logging.getLogger(__name__).error('Unknown color name [{}]'.format(name))
     return None
 
 
@@ -160,18 +165,22 @@ def get_val(df, key, is_int=False, is_float=False, is_str=False, is_date=False):
                 return ''
         else:
             if is_date:
-                val = to_datetime(val).strftime('%d/%m/%Y')
+                try:
+                    val = to_datetime(val).strftime('%d/%m/%Y')
+                except Exception as ex:
+                    logging.getLogger(__name__).error('Could not format date value [{}]. {}'.format(val, str(ex)))
+                    val = get_val(df, key, is_str=True)
             elif isinstance(val, str):
                 try:
                     temp = parse_unicode_str(val).encode(encoding='utf-8')
                     val = temp.decode(encoding=REPORT_ENCODING, errors='strict')
                 except UnicodeEncodeError:
-                    logging.error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
+                    logging.getLogger(__name__).error('Failed to encode UTF-8 to {} [{}]'.format(REPORT_ENCODING, val))
                 except UnicodeDecodeError:
-                    logging.error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
+                    logging.getLogger(__name__).error('Failed to decode to {} [{}]'.format(REPORT_ENCODING, val))
             return val
     except KeyError:
-        logging.debug('Data frame does not contain the following key value [{}]'.format(key))
+        logging.getLogger(__name__).debug('Data frame does not contain the following key value [{}]'.format(key))
     return None
 
 
@@ -226,30 +235,34 @@ def format_value(val, d_format=None):
     if d_format is None:
         d_format = ''
 
-    if NAN is str(val).lower():
-        val = text.NOT_APPLICABLE
-    elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
-        if len(val) > MAX_FORMATTED_VALUE_SIZE:
-            val = '{}..'.format(val[:MAX_FORMATTED_VALUE_SIZE - 3])
-    elif d_format.upper() == PERCENTAGE.upper():
-        if isinstance(val, str):
-            tmp = try_parse(val, is_float=True)
-            if tmp is None:
-                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
-                return None
-            else:
-                val = tmp
-        val = '%.2f' % (val * 100) + '%'
-    elif d_format.upper() == text.NUMBER.upper() or \
-            (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
-        if isinstance(val, str):
-            tmp = try_parse(val, is_float=True)
-            if tmp is None:
-                logging.getLogger(__name__).error('Failed to format non floating point string value [{}]'.format(val))
-                return None
-            else:
-                val = tmp
-        val = '%.2f' % val
+    if val is not None:
+
+        if NAN is str(val).lower():
+            val = text.NOT_APPLICABLE
+        elif try_parse(val, is_int=True) is None and try_parse(val, is_float=True) is None:
+            if len(val) > MAX_FORMATTED_VALUE_SIZE:
+                val = '{}..'.format(val[:MAX_FORMATTED_VALUE_SIZE - 3])
+        elif d_format.upper() == PERCENTAGE.upper():
+            if isinstance(val, str):
+                tmp = try_parse(val, is_float=True)
+                if tmp is None:
+                    logging.getLogger(__name__).error(
+                        'Failed to format non floating point string value [{}]'.format(val))
+                    return None
+                else:
+                    val = tmp
+            val = '%.2f' % (val * 100) + '%'
+        elif d_format.upper() == text.NUMBER.upper() or \
+                (try_parse(val, is_int=True) is None and try_parse(val, is_float=True)):
+            if isinstance(val, str):
+                tmp = try_parse(val, is_float=True)
+                if tmp is None:
+                    logging.getLogger(__name__).error(
+                        'Failed to format non floating point string value [{}]'.format(val))
+                    return None
+                else:
+                    val = tmp
+            val = '%.2f' % val
     return str(val)
 
 
@@ -321,7 +334,11 @@ def get_performance_per_given_frequency(data_list, frequency, freq_num):
             if len(d_fn) == 0:
                 result.append(None)
             else:
-                result.append(d_fn[len(d_fn) - 1].performance.upper())
+                p = d_fn[len(d_fn) - 1].performance
+                if str_blank(p):
+                    result.append(None)
+                else:
+                    result.append(str(p).upper())
     return result
 
 

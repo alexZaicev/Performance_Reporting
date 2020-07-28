@@ -160,7 +160,11 @@ def get_val(df, key, is_int=False, is_float=False, is_str=False, is_date=False):
                 return ''
         else:
             if is_date:
-                val = to_datetime(val).strftime('%d/%m/%Y')
+                try:
+                    val = to_datetime(val).strftime('%d/%m/%Y')
+                except Exception as ex:
+                    logging.getLogger(__name__).error('Could not format date value [{}]. {}'.format(val, str(ex)))
+                    val = get_val(df, key, is_str=True)
             elif isinstance(val, str):
                 try:
                     temp = parse_unicode_str(val).encode(encoding='utf-8')
